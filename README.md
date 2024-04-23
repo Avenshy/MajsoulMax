@@ -86,4 +86,4 @@
        - 如果更新失败，可能会导致无法获取新资源（如新角色、物品等）
     - 如果自动更新失败，可以在[AutoLiqi > Releases](https://github.com/Avenshy/AutoLiqi/releases/latest)下载，并手动替换`./proto`文件夹下的同名文件
 2. 还有其它问题？
-   在上方加入我们的[Telegram群](#✈️telegram频道交流群)
+   在上方加入我们的[Telegram群](https://github.com/Avenshy/MajsoulMax?tab=readme-ov-file#%EF%B8%8Ftelegram%E9%A2%91%E9%81%93%E4%BA%A4%E6%B5%81%E7%BE%A4)
