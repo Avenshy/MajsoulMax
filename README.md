@@ -65,7 +65,7 @@
           - `Address`: `127.0.0.1`
           - `Port`: `23410`
           - `Protocol`: `HTTPS`
-          - 填写完后点击Check，确保看到一片绿色
+          - 填写完后点击Check，确保看到`Test 1`下显示绿色的`Test passed`，其他的不用管
           - `OK`
        - `Profile` > `Proxification Rules` > `Add`
           - `Name`: 随便起个名字
