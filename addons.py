@@ -73,8 +73,7 @@ class WebSocketAddon:
         if MOD_ENABLE:
             # 如果启用mod，就把消息丢进mod里
             if not message.injected:
-                modify, drop, msg, inject, inject_msg = mod_plugin.main(
-                    message, liqi_proto)
+                modify, drop, msg, inject, inject_msg = mod_plugin.main(message, liqi_proto)
                 if drop:
                     message.drop()
                 if inject:
@@ -92,21 +91,10 @@ class WebSocketAddon:
                 logger.error(f'已发送(error):{result}')
         else:
             if message.from_client is False:
-                if message.injected:
-                    logger.success(f'接收到(injected)：{result}')
-                elif modify:
-                    logger.success(f'接收到(modify)：{result}')
-                elif drop:
-                    logger.success(f'接收到(drop)：{result}')
-                else:
-                    logger.info(f'接收到：{result}')
                 if HELPER_ENABLE:
                     # 如果启用helper，就把消息丢进helper里
                     helper_plugin.main(result)
             else:
-                if modify:
-                    logger.success(f'已发送(modify)：{result}')
-                else:
                     logger.info(f'已发送：{result}')
 
 
