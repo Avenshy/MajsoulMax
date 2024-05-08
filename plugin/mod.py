@@ -7,6 +7,7 @@ from proto import liqi_pb2, config_pb2, sheets_pb2, basic_pb2
 from google.protobuf import json_format
 from .update_liqi import get_version
 
+
 class mod:
     def __init__(self):
         self.safe = {}
@@ -38,7 +39,8 @@ config:
     8: []
     9: []
   views_index: 0 # 正在使用的装扮页
-  show_server: true   
+  show_server: true # 显示其他玩家所在服务器
+  verified: 0 # 标识设置，0为无标识，1为主播标识，2为Pro标识，显示在名字后面
 # 资源文件lqc.lqbin的配置                            
 resource:
   auto_update: true # 自动更新lqc.lqbin
@@ -66,16 +68,17 @@ mod: {}
         with open('./config/settings.mod.yaml', 'w', encoding='utf-8') as f:
             self.yaml.dump(self.settings, f)
 
-    def get_prefix(self,version):
+    def get_prefix(self, version):
         req = requests.get(
             f'https://game.maj-soul.com/1/resversion{version}.json', timeout=10)
         return req.json()['res']['res/config/lqc.lqbin']['prefix']
-    def get_lqc_lqbin(self,prefix):
+
+    def get_lqc_lqbin(self, prefix):
         req = requests.get(
             f'https://game.maj-soul.com/1/{prefix}/res/config/lqc.lqbin', timeout=10)
         return req.content
-    
-    def load_lqc_lqbin(self,lqc_lqbin):
+
+    def load_lqc_lqbin(self, lqc_lqbin):
         config_table = config_pb2.ConfigTables()
         config_table.ParseFromString(lqc_lqbin)
         self.settings['mod']['character'] = []
@@ -269,7 +272,7 @@ mod: {}
                         character.exp = 0
                         character.is_upgraded = True
                         character.level = 5
-                        character.rewarded_level.extend([1,2,3,4,5])
+                        character.rewarded_level.extend([1, 2, 3, 4, 5])
                         if self.settings['config']['emoji']:
                             character.extra_emoji.extend(
                                 self.settings['mod']['emoji'][character.charid])
@@ -297,7 +300,7 @@ mod: {}
                         data = liqi_pb2.ReqSetLoadingImage()
                         data.ParseFromString(msg_block.data)
                         # self.safe['loading_image'] = []
-                        self.settings['mod']['loading_image'] = list(
+                        self.settings['config']['loading_image'] = list(
                             data.images)
                         self.SaveSettings()
                     case '.lq.Lobby.saveCommonViews':  # 保存装扮
@@ -365,7 +368,7 @@ mod: {}
                             character.exp = 0
                             character.is_upgraded = True
                             character.level = 5
-                            character.rewarded_level.extend([1,2,3,4,5])
+                            character.rewarded_level.extend([1, 2, 3, 4, 5])
                             if c not in character_keys:
                                 self.settings['config']['characters'][c] = int(
                                     '40'+str(c)[4:6]+'01')
@@ -403,12 +406,16 @@ mod: {}
                         else:
                             data.account.avatar_id = int(
                                 '40'+str(self.settings['config']['character'])[4:6]+'01')
+                        for view in self.settings['config']['views'][self.settings['config']['views_index']]:
+                            if view['slot'] == 5:
+                                data.account.avatar_frame = view['item_id']
                         if self.settings['config']['nickname'] != '':
                             data.account.nickname = self.settings['config']['nickname']
                         data.account.title = self.settings['config']['title']
                         data.account.ClearField('loading_image')
                         data.account.loading_image.extend(
                             self.settings['config']['loading_image'])
+                        data.account.verified = self.settings['config']['verified']
                     case '.lq.Lobby.createRoom':  # 友人房 创建房间
                         modify = True
                         data = liqi_pb2.ResCreateRoom()
@@ -420,7 +427,8 @@ mod: {}
                                 p.avatar_id = self.settings['config']['characters'][self.settings['config']['character']]
                                 p.character.charid = self.settings['config']['character']
                                 p.character.exp = 0
-                                p.character.rewarded_level.extend([1,2,3,4,5])
+                                p.character.rewarded_level.extend(
+                                    [1, 2, 3, 4, 5])
                                 p.character.skin = self.settings['config'][
                                     'characters'][self.settings['config']['character']]
                                 if self.settings['config']['emoji']:
@@ -433,6 +441,7 @@ mod: {}
                                 for view in self.settings['config']['views'][self.settings['config']['views_index']]:
                                     view_slot = p.character.views.add()
                                     json_format.ParseDict(view, view_slot)
+                                p.verified = self.settings['config']['verified']
                             if self.settings['config']['show_server']:
                                 match self.get_zone_id(p.account_id):
                                     case 1:
@@ -452,7 +461,7 @@ mod: {}
                         for p in data.players:
                             p.character.level = 5
                             p.character.is_upgraded = True
-                            p.character.rewarded_level.extend([1,2,3,4,5])
+                            p.character.rewarded_level.extend([1, 2, 3, 4, 5])
                             if p.account_id == self.safe['account_id']:
                                 p.avatar_id = self.settings['config']['characters'][self.settings['config']['character']]
                                 p.character.charid = self.settings['config']['character']
@@ -469,6 +478,11 @@ mod: {}
                                 for view in self.settings['config']['views'][self.settings['config']['views_index']]:
                                     view_slot = p.character.views.add()
                                     json_format.ParseDict(view, view_slot)
+                                    if view['slot'] == 5:
+                                        p.avatar_frame = view['item_id']
+                                p.views.MergeFrom(p.character.views)
+                                p.verified = self.settings['config']['verified']
+
                             if self.settings['config']['show_server']:
                                 match self.get_zone_id(p.account_id):
                                     case 1:
@@ -486,12 +500,16 @@ mod: {}
                             modify = True
                             data.account.avatar_id = self.settings['config'][
                                 'characters'][self.settings['config']['character']]
+                            for view in self.settings['config']['views'][self.settings['config']['views_index']]:
+                                if view['slot'] == 5:
+                                    data.account.avatar_frame = view['item_id']
                             if self.settings['config']['nickname'] != '':
                                 data.account.nickname = self.settings['config']['nickname']
                             data.account.title = self.settings['config']['title']
                             data.account.ClearField('loading_image')
                             data.account.loading_image.extend(
-                                self.settings['mod']['loading_image'])
+                                self.settings['config']['loading_image'])
+                            data.account.verified = self.settings['config']['verified']
                         # if self.settings['config']['show_server']:
                         #     match self.get_zone_id(data.account.account_id):
                         #         case 0:
@@ -516,7 +534,7 @@ mod: {}
                         for p in data.room.persons:
                             p.character.is_upgraded = True
                             p.character.level = 5
-                            p.character.rewarded_level.extend([1,2,3,4,5])
+                            p.character.rewarded_level.extend([1, 2, 3, 4, 5])
                             if p.account_id == self.safe['account_id']:
                                 p.avatar_id = self.settings['config']['characters'][self.settings['config']['character']]
                                 p.character.charid = self.settings['config']['character']
@@ -534,6 +552,7 @@ mod: {}
                                 for view in self.settings['config']['views'][self.settings['config']['views_index']]:
                                     view_slot = p.character.views.add()
                                     json_format.ParseDict(view, view_slot)
+                                p.verified = self.settings['config']['verified']
                             if self.settings['config']['show_server']:
                                 match self.get_zone_id(p.account_id):
                                     case 1:
@@ -582,7 +601,7 @@ mod: {}
                         MyAnnouncement.title = '雀魂MAX载入成功'
                         MyAnnouncement.id = 666666
                         MyAnnouncement.header_image = 'internal://2.jpg'
-                        MyAnnouncement.content = '<color=#f9963b>作者：Avenshy        版本：20240424</color>\n\
+                        MyAnnouncement.content = '<color=#f9963b>作者：Avenshy        版本：20240508</color>\n\
 <b>本工具完全免费、开源，如果您为此付费，说明您被骗了！</b>\n\
 <b>本工具仅供学习交流，请在下载后24小时内删除，不得用于商业用途，否则后果自负！</b>\n\
 <b>本工具有可能导致账号被封禁，给猫粮充钱才是正道！</b>\n\n\
@@ -593,7 +612,7 @@ mod: {}
 <href=https://patreon.com/Avenshy>Patreon，支持Paypal、信用卡</href>\n\
 <color=#f9963b>再次重申：脚本完全免费使用，没有收费功能，请喝咖啡完全自愿，作者非常感谢您！</color>'
                         data.announcements.insert(0, MyAnnouncement)
-                    case '.lq.Lobby.fetchInfo': # 网页版特殊处理
+                    case '.lq.Lobby.fetchInfo':  # 网页版特殊处理
                         modify = True
                         data = liqi_pb2.ResFetchInfo()
                         data.ParseFromString(msg_block.data)
@@ -602,14 +621,15 @@ mod: {}
                         self.safe['main_character_id'] = data.character_info.main_character_id
                         self.safe['characters'] = data.character_info.characters
                         data.character_info.ClearField('characters')
-                        character_keys = self.settings['config']['characters'].keys()
+                        character_keys = self.settings['config']['characters'].keys(
+                        )
                         for c in self.settings['mod']['character']:
                             character = data.character_info.characters.add()
                             character.charid = c
                             character.exp = 0
                             character.is_upgraded = True
                             character.level = 5
-                            character.rewarded_level.extend([1,2,3,4,5])
+                            character.rewarded_level.extend([1, 2, 3, 4, 5])
                             if c not in character_keys:
                                 self.settings['config']['characters'][c] = int(
                                     '40'+str(c)[4:6]+'01')
@@ -618,7 +638,8 @@ mod: {}
                                 character.extra_emoji.extend(
                                     self.settings['mod']['emoji'][character.charid])
                         data.character_info.ClearField('skins')
-                        data.character_info.skins.extend(self.settings['mod']['skin'])
+                        data.character_info.skins.extend(
+                            self.settings['mod']['skin'])
                         data.character_info.main_character_id = self.settings['config']['character']
                         data.character_info.ClearField('character_sort')
                         data.character_info.character_sort.extend(
@@ -630,7 +651,7 @@ mod: {}
                             self.settings['mod']['endings'])
                         data.character_info.rewarded_endings.extend(
                             self.settings['mod']['endings'])
-                        
+
                         # 处理背包
                         self.safe['items'] = data.bag_info.bag.items
                         data.bag_info.bag.ClearField('items')
@@ -658,7 +679,6 @@ mod: {}
                             views = data.all_common_views.views.add()
                             json_format.ParseDict(
                                 {'index': i, 'values': view}, views)
-
 
                 if fake:
                     modify = True
