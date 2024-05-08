@@ -40,7 +40,8 @@
 - 解锁所有加载CG
 - 支持星标角色
 - 自定义名称
-- 显示玩家所在服务器 
+- 显示玩家所在服务器
+- 显示主播/Pro标识 
 - TODO……
 
 ### `helper`功能：
@@ -48,13 +49,15 @@
   
 ## 🧐使用说明  
 1. 启动程序
-    - 方式1（懒人模式）: 直接运行`run.exe`（Windows限定）
-    - 方式2（源码运行）： 在`Python>=3.10`环境，打开命令行，在当前目录运行`mitmdump -p 23410 -s addons.py`启动程序（首次运行需`pip install -r requirements.txt`安装依赖）
+    - 方式1（懒人模式）：在[Releases](https://github.com/Avenshy/MajsoulMax/releases/latest)里下载，解压后直接运行`run.exe`（Windows限定）
+    - 方式2（源码运行）：通过`git clone`或其他方式下载源码到本地，在`Python>=3.10`环境下，打开命令行，在当前目录运行`mitmdump -p 23410 -s addons.py`启动程序（首次运行需`pip install -r requirements.txt`安装依赖）
 2. 关闭程序，修改配置
     - 根据程序提示和自身需求修改
 3. 再次启动程序
 4. 启动游戏，分为网页版和客户端/Steam端。
-    - 如果要启动网页版：
+    - 如果要启动网页版：（限`Chrome`/`Edge`）
+       - 在浏览器中禁用所有雀魂相关插件和脚本，**彻底禁用或卸载**代理相关插件（如`Proxy SwitchyOmega`）
+       - 使用浏览器正常进入游戏一次
        - 关闭所有浏览器窗口，用任务管理器查看后台确保无进程残留
        - 将Chrome或者Edge的快捷方式 `复制->粘贴` 出现一个副本，对快捷方式副本 `右键->属性->目标` 的后面按一个空格后添加` --proxy-server=127.0.0.1:23410 --ignore-certificate-errors https://game.maj-soul.com/1/` （如果要玩其他服务器则修改对应网址）
     - 如果要启动客户端/Steam端：
