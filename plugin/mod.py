@@ -26,7 +26,7 @@ config:
   bianjietishi: false # 强制启用便捷提示，用于部分场没有宝牌指示、和牌指示等
   title: 0  # 当前使用的称号
   loading_image: [] # 加载CG
-  emoji: false # 不建议开启，用于解锁角色全部emoji
+  emoji: false # 不建议开启，用于解锁角色全部emoji，如果你本身角色没有额外表情，在对局中却发送额外表情，这种行为相当于自爆卡车
   views: # 各装扮页的装扮
     0: []
     1: []
@@ -41,16 +41,23 @@ config:
   views_index: 0 # 正在使用的装扮页
   show_server: true # 显示其他玩家所在服务器
   verified: 0 # 标识设置，0为无标识，1为主播标识，2为Pro标识，显示在名字后面
+  anti_replace_nickname: true # 禁止将外服玩家设为默认名称，特殊时期必备
 # 资源文件lqc.lqbin的配置                            
 resource:
   auto_update: true # 自动更新lqc.lqbin
-  lqc_lqbin_version: 'v0.11.39.w' # lqc.lqbin文件版本
+  lqc_lqbin_version: 'v0.11.43.w' # lqc.lqbin文件版本
 # 下面是游戏的资源文件内容，包括需要获得的角色、物品等，不需要修改，除非你要自定义
 mod: {}
 ''')
         try:
             with open('./config/settings.mod.yaml', 'r', encoding='utf-8') as f:
-                self.settings.update(self.yaml.load(f))
+                temp = YAML()
+                localyaml = temp.load(f)
+                for i in self.settings.keys():
+                    if i in localyaml.keys():
+                        for j in self.settings[i]:
+                            if j in localyaml[i].keys():
+                                self.settings[i][j] = localyaml[i][j]
         except:
             logger.warning(
                 '未检测到mod配置文件，已生成默认配置，如需自定义mod配置请手动修改 ./config/settings.mod.yaml')
@@ -198,7 +205,8 @@ mod: {}
                         if self.settings['config']['show_server']:
                             match self.get_zone_id(p.account_id):
                                 case 1:
-                                    p.nickname = '[CN]'+p.nickname
+                                    p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
+                                        'utf-8') + 'N]'+p.nickname
                                 case 2:
                                     p.nickname = '[JP]'+p.nickname
                                 case 3:
@@ -214,7 +222,8 @@ mod: {}
                         if self.settings['config']['show_server']:
                             match self.get_zone_id(p.account_id):
                                 case 1:
-                                    p.nickname = '[CN]'+p.nickname
+                                    p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
+                                        'utf-8') + 'N]'+p.nickname
                                 case 2:
                                     p.nickname = '[JP]'+p.nickname
                                 case 3:
@@ -233,12 +242,22 @@ mod: {}
                     data.main_character.add = 0
                     data.main_character.exp = 0
                     data.main_character.level = 5
-
-            if modify:
-                msg_block.data = data.SerializeToString()
-                msg = b'\x01' + msg_block.SerializeToString()
-                self.SaveSettings()
-
+                case '.lq.NotifyCustomContestSystemMsg':
+                    if self.settings['config']['show_server']:
+                        modify = True
+                        data = liqi_pb2.NotifyCustomContestSystemMsg()
+                        data.ParseFromString(msg_block.data)
+                        for p in data.game_start.players:
+                            match self.get_zone_id(p.account_id):
+                                case 1:
+                                    p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
+                                        'utf-8') + 'N]'+p.nickname
+                                case 2:
+                                    p.nickname = '[JP]'+p.nickname
+                                case 3:
+                                    p.nickname = '[EN]'+p.nickname
+                                case _:
+                                    p.nickname = '[??]'+p.nickname
         else:
             msg_id = unpack('<H', buf[1:3])[0]
             msg_block.ParseFromString(buf[3:])
@@ -331,17 +350,11 @@ mod: {}
                             fake = True
                     case '.lq.Lobby.receiveCharacterRewards':
                         fake = True
-
                 if fake:
                     modify = True
                     data = liqi_pb2.ReqLoginBeat()
                     data.contract = self.contract
                     msg_block.method_name = '.lq.Lobby.loginBeat'
-                if modify:
-                    msg_block.data = data.SerializeToString()
-                    msg = buf[:3]+msg_block.SerializeToString()
-                    self.SaveSettings()
-
             elif msg_type == liqi_new.MsgType.Res:
                 # Res类型必定是客户端收到的消息
                 assert (not from_client)
@@ -445,7 +458,8 @@ mod: {}
                             if self.settings['config']['show_server']:
                                 match self.get_zone_id(p.account_id):
                                     case 1:
-                                        p.nickname = '[CN]'+p.nickname
+                                        p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
+                                            'utf-8') + 'N]'+p.nickname
                                     case 2:
                                         p.nickname = '[JP]'+p.nickname
                                     case 3:
@@ -474,19 +488,19 @@ mod: {}
                                 if self.settings['config']['nickname'] != '':
                                     p.nickname = self.settings['config']['nickname']
                                 p.title = self.settings['config']['title']
-                                p.character.ClearField('views')
+                                p.ClearField('views')
                                 for view in self.settings['config']['views'][self.settings['config']['views_index']]:
-                                    view_slot = p.character.views.add()
+                                    view_slot = p.views.add()
                                     json_format.ParseDict(view, view_slot)
                                     if view['slot'] == 5:
                                         p.avatar_frame = view['item_id']
-                                p.views.MergeFrom(p.character.views)
                                 p.verified = self.settings['config']['verified']
 
                             if self.settings['config']['show_server']:
                                 match self.get_zone_id(p.account_id):
                                     case 1:
-                                        p.nickname = '[CN]'+p.nickname
+                                        p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
+                                            'utf-8') + 'N]'+p.nickname
                                     case 2:
                                         p.nickname = '[JP]'+p.nickname
                                     case 3:
@@ -513,7 +527,7 @@ mod: {}
                         # if self.settings['config']['show_server']:
                         #     match self.get_zone_id(data.account.account_id):
                         #         case 0:
-                        #             data.account.nickname = '[CN]'+data.account.nickname
+                        #             data.account.nickname = '[C' + b'\xef\xbb\xbf'.decode('utf-8') +'N]'+data.account.nickname
                         #         case 1:
                         #             data.account.nickname = '[JP]'+data.account.nickname
                         #         case 3:
@@ -556,7 +570,8 @@ mod: {}
                             if self.settings['config']['show_server']:
                                 match self.get_zone_id(p.account_id):
                                     case 1:
-                                        p.nickname = '[CN]'+p.nickname
+                                        p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
+                                            'utf-8') + 'N]'+p.nickname
                                     case 2:
                                         p.nickname = '[JP]'+p.nickname
                                     case 3:
@@ -679,21 +694,23 @@ mod: {}
                             views = data.all_common_views.views.add()
                             json_format.ParseDict(
                                 {'index': i, 'values': view}, views)
-
-                if fake:
-                    modify = True
-                    data = liqi_pb2.ReqLoginBeat()
-                    data.contract = self.contract
-                    msg_block.method_name = '.lq.Lobby.loginBeat'
-                if modify:
-                    msg_block.data = data.SerializeToString()
-                    msg = buf[:3] + msg_block.SerializeToString()
-                    self.SaveSettings()
-
+                    case '.lq.Lobby.fetchServerSettings':
+                        data = liqi_pb2.ResServerSettings()
+                        data.ParseFromString(msg_block.data)
+                        if self.settings['config']['anti_replace_nickname']:
+                            modify = True
+                            data.settings.nickname_setting.enable = 0
+                            data.settings.nickname_setting.ClearField(
+                                'nicknames')
             else:
                 logger.error(f'unknown msgtype: {msg_type}')
             if modify:
-                pass
+                msg_block.data = data.SerializeToString()
+                if msg_type == liqi_new.MsgType.Notify:
+                    msg = b'\x01' + msg_block.SerializeToString()
+                else:
+                    msg = buf[:3] + msg_block.SerializeToString()
+                self.SaveSettings()
 
         return modify, drop, msg, inject, inject_msg
 
