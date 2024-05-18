@@ -94,9 +94,9 @@ class WebSocketAddon:
             if message.from_client is False:
                 if message.injected:
                     logger.success(f'接收到(injected)：{result}')
-                elif modify:
+                elif MOD_ENABLE and modify:
                     logger.success(f'接收到(modify)：{result}')
-                elif drop:
+                elif MOD_ENABLE and drop:
                     logger.success(f'接收到(drop)：{result}')
                 else:
                     logger.info(f'接收到：{result}')
@@ -104,7 +104,7 @@ class WebSocketAddon:
                     # 如果启用helper，就把消息丢进helper里
                     helper_plugin.main(result)
             else:
-                if modify:
+                if MOD_ENABLE and modify:
                     logger.success(f'已发送(modify)：{result}')
                 else:
                     logger.info(f'已发送：{result}')
