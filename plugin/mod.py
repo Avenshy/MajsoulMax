@@ -704,13 +704,13 @@ mod: {}
                                 'nicknames')
             else:
                 logger.error(f'unknown msgtype: {msg_type}')
-            if modify:
-                msg_block.data = data.SerializeToString()
-                if msg_type == liqi_new.MsgType.Notify:
-                    msg = b'\x01' + msg_block.SerializeToString()
-                else:
-                    msg = buf[:3] + msg_block.SerializeToString()
-                self.SaveSettings()
+        if modify:
+            msg_block.data = data.SerializeToString()
+            if msg_type == liqi_new.MsgType.Notify:
+                msg = b'\x01' + msg_block.SerializeToString()
+            else:
+                msg = buf[:3] + msg_block.SerializeToString()
+            self.SaveSettings()
 
         return modify, drop, msg, inject, inject_msg
 
