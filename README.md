@@ -48,6 +48,10 @@
 - 将对局发送到[mahjong-helper（雀魂小助手）](https://github.com/EndlessCheng/mahjong-helper)
   
 ## 🧐使用说明  
+### 视频教程
+[雀魂MAX使用教程，2分钟解锁所有角色皮肤装扮等](https://www.bilibili.com/video/BV12F4m1w7d9/)
+
+### 文字教程
 1. 启动程序
     - 方式1（懒人模式）：在[Releases](https://github.com/Avenshy/MajsoulMax/releases/latest)里下载，解压后直接运行`run.exe`（Windows限定）
     - 方式2（源码运行）：通过`git clone`或其他方式下载源码到本地，在`Python>=3.10`环境下，打开命令行，在当前目录运行`mitmdump -p 23410 -s addons.py`启动程序（首次运行需`pip install -r requirements.txt`安装依赖）
