@@ -576,6 +576,7 @@ message AccountUpdate {
     AccountABMatchUpdate ab_match = 14;
     lq.AccountActivityUpdate activity = 15;
     SegmentTaskUpdate activity_segment_task = 16;
+    MonthTicketUpdate month_ticket = 17;
 
     message NumericalUpdate {
 
@@ -647,6 +648,12 @@ message AccountUpdate {
 
         repeated lq.SegmentTaskProgress progresses = 1;
         repeated uint32 task_list = 2;
+    }
+
+    message MonthTicketUpdate {
+
+        uint32 end_time = 1;
+        uint32 last_pay_time = 2;
     }
 }
 
@@ -817,6 +824,7 @@ message Room {
     uint32 robot_count = 9;
     uint32 tournament_id = 10;
     uint32 seq = 11;
+    string pre_rule = 12;
 }
 
 message GameEndResult {
@@ -2986,6 +2994,7 @@ message ReqCreateRoom {
     GameMode mode = 2;
     bool public_live = 3;
     string client_version_string = 4;
+    string pre_rule = 5;
 }
 
 message ResCreateRoom {
@@ -3637,6 +3646,7 @@ message ReqRollingNotice {
 message ResServerTime {
 
     uint32 server_time = 1;
+    Error error = 2;
 }
 
 message ReqPlatformBillingProducts {

@@ -94,3 +94,24 @@
     - 如果自动更新失败，可以在[AutoLiqi > Releases](https://github.com/Avenshy/AutoLiqi/releases/latest)下载，并手动替换`./proto`文件夹下的同名文件
 2. 还有其它问题？
    在上方加入我们的[Telegram群](https://github.com/Avenshy/MajsoulMax?tab=readme-ov-file#%EF%B8%8Ftelegram%E9%A2%91%E9%81%93%E4%BA%A4%E6%B5%81%E7%BE%A4)
+
+## 代理
+如果下载失败或，可以使用代理，代理配置文件在`config/settings.proxy.yaml`将其中`null`改为你的代理地址格式是`http://host:port`
+
+## 一站式服务
+
+1. 此功能涉及到的文件位于`START.py`和`auto_play`文件夹下
+2. 该功能目前正在开发中，已经能够实现自定义端口（方便多开）以及浏览器自动启动（只支持chrome）
+3. 启动文件为 `START.py`, 请确保你的电脑上有python环境
+4. 启动命令为 `python START.py -mit_port port1 -helper_port port2 [-proxy http_proxy]`
+5. `port1`是mitmproxy的端口，`port2`是mahjong-helper的端口，`http_proxy`是http代理，可选，格式是`http://host:port`
+6. TODO:
+    - 自动选择端口
+    - 端口重复提示
+    - 自动出牌
+    - 自动胡牌
+    - 自动开始开始下一局
+7. 此功能由bilibili12433014开发，不得用于商业用途，否则后果自负
+8. 本功能完全免费、开源，如果您为此付费，说明您被骗了！
+8. 警告：
+> 雀魂游戏官方可能会检测并封号！<br />如产生任何后果与作者无关！<br />使用本功能则表示同意此条款！

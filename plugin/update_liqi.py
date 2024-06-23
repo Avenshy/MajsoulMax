@@ -1,4 +1,4 @@
-import requests
+from auto_play.RequestsProxy import proxy as requests
 from loguru import logger
 
 

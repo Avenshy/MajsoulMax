@@ -1,11 +1,11 @@
 from ruamel.yaml import YAML
 from loguru import logger
 import liqi_new
-import requests
 from struct import unpack
 from proto import liqi_pb2, config_pb2, sheets_pb2, basic_pb2
 from google.protobuf import json_format
 from .update_liqi import get_version
+from auto_play.RequestsProxy import proxy as requests
 
 
 class mod:
