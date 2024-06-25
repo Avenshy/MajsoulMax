@@ -1,0 +1,6 @@
+selenium
+numpy
+opencv-python
+Pillow
+yaml
+webdriver_manager
