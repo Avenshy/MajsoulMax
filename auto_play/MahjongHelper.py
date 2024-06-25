@@ -65,7 +65,7 @@ class MahjongHelper:
         self.process.stdin.write(data + "\n")
         self.process.stdin.flush()
 
-    def get_output(self):
+    def get_output(self) -> str|None:
         if not self.output_queue.empty():
             return self.output_queue.get()
         return None

@@ -13,6 +13,13 @@ class MajSoulMitmdump:
             ]
         options += [
         '-p', str(port),  # 指定端口
-        '-s', 'addons.py'  # 指定脚本
+        '-s', 'addons.py',  # 指定脚本
+        '--set', 'ssl_insecure=true',
+        '--no-http2',
+        '--ignore-hosts', "game.*",
+        '--ignore-hosts', ".*ali.*",
+        #'--allow-hosts', '^common-v2.*',
+        #'--allow-hosts', '^gateway-hw.*',
+        #'--tcp-hosts', '^gateway-hw.*'
         ]
         mitmdump(options)

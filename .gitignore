@@ -159,3 +159,4 @@ config
 mahjong-helper.exe
 log
 config.json
+cache
