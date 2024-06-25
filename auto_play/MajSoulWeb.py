@@ -10,17 +10,27 @@ from io import BytesIO
 import cv2
 import threading
 import time
+import traceback
+import os
+from auto_play.RequestsProxy import RequestsProxy
+from auto_play.MahjongHelper import MahjongHelper
+import json
+import atexit
 
 
 class MajSoulWeb:
     def __init__(
         self,
-        proxy_port:str|int|None="23410",
+        proxy_port: str | int | None = "23410",
+        helper: MahjongHelper = None,
         chrome_path="C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
     ):
-        self.proxy_server = "127.0.0.1:"+str(proxy_port) if None else None
+        self.helper = helper
+        self.proxy_server = "127.0.0.1:" + str(proxy_port) if proxy_port else None
+        self.proxy = RequestsProxy("http://" + self.proxy_server)
         self.chrome_path = chrome_path
         self.driver = self._setup_driver()
+        self.open_wait_page()
         threading.Thread(target=self.main).start()
 
     def _setup_driver(self):
@@ -35,12 +45,40 @@ class MajSoulWeb:
         )
         return driver
 
+    def open_wait_page(self, url="auto_play/wait.html"):
+        self.driver.get(os.path.abspath(url))
+
     def open_game_page(self, url="https://game.maj-soul.com/1/"):
         self.driver.get(url)
-        WebDriverWait(self.driver, 10).until(
-            EC.presence_of_element_located((By.ID, "layaCanvas"))
-        )
+        
+    def save_data(self):
+        # 保存Cookies
+        with open('config/cookies.json', 'w') as f:
+            json.dump(self.driver.get_cookies(), f, indent=4)
+        
+        # 保存localStorage数据
+        local_storage = self.driver.execute_script("return JSON.stringify(localStorage);")
+        local_storage_data = json.loads(local_storage)
+        with open('config/local_storage.json', 'w') as local_file:
+            json.dump(local_storage_data, local_file, indent=4)
 
+    def read_data(self):
+        # 读取并添加Cookies
+        if os.path.exists('config/cookies.json'):
+            with open('config/cookies.json', 'r') as f:
+                cookies = json.load(f)
+                for cookie in cookies:
+                    self.driver.add_cookie(cookie)
+            self.driver.refresh()
+        
+        # 读取并设置localStorage数据
+        if os.path.exists('config/local_storage.json'):
+            with open('config/local_storage.json', 'r') as local_file:
+                local_storage_data = json.load(local_file)
+                for key, value in local_storage_data.items():
+                    self.driver.execute_script(f"localStorage.setItem('{key}', '{value}');")
+
+                
     def get_image(self):
         screenshot = self.driver.get_screenshot_as_png()
         image = Image.open(BytesIO(screenshot))
@@ -87,7 +125,20 @@ class MajSoulWeb:
         cv2.imshow("maj-soul", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-        
+
     def main(self):
-        time.sleep(10)
-        self.open_game_page()
+        while True:
+            try:
+                self.proxy.get("http://www.baidu.com")
+                self.open_game_page()
+                self.read_data()
+                atexit.register(self.save_data)
+                break
+            except:
+                pass
+        
+        while True:
+            try:
+                exec(input())
+            except:
+                print(traceback.format_exc())

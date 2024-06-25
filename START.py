@@ -25,7 +25,7 @@ def update_proxy_config(proxy):
         yaml.dump(config_data, file, default_flow_style=False)
 
 parser = argparse.ArgumentParser(description='设置代理和端口配置')
-parser.add_argument('-proxy', type=str, default=None, help='指定代理上网，流量出接口,http://host:port')
+parser.add_argument('-proxy', type=str, default=None, help='指定代理上网，流量出接口,格式http://host:port,例如http://localhost:10809')
 parser.add_argument('-mit_port', type=int, default=23410, help='指定中间代理监听端口')
 parser.add_argument('-helper_port', type=int, default=12121, help='指定小助手端监听口')
 
@@ -36,5 +36,5 @@ if args.proxy:
     update_proxy_config(args.proxy)
 
 helper = MahjongHelper(port=args.helper_port)
-web = MajSoulWeb(proxy_port=args.mit_port)
+web = MajSoulWeb(proxy_port=args.mit_port, helper=helper)
 mitmdump = MajSoulMitmdump(proxy=args.proxy,port=args.mit_port)

@@ -10,6 +10,7 @@ from auto_play.RequestsProxy import proxy as requests
 def download_and_extract(url, extract_to="."):
     local_filename = url.split("/")[-1]
     if not os.path.exists("mahjong-helper.exe"):
+        print(f"mahjong-helper.exe不存在，正在下载\n")
         with requests.get(url, stream=True) as r:
             r.raise_for_status()
             with open(local_filename, "wb") as f:
@@ -20,8 +21,9 @@ def download_and_extract(url, extract_to="."):
             zip_ref.extractall(extract_to)
 
         os.remove(local_filename)
+        print(f"mahjong-helper.exe下载完成\n")
     else:
-        print(f"mahjong-helper.exe already exists, skipping download.")
+        print(f"mahjong-helper.exe已存在，跳过下载\n")
 
 
 url = "https://github.com/EndlessCheng/mahjong-helper/releases/download/v0.2.8/mahjong-helper-v0.2.8-win64-x64.zip"
