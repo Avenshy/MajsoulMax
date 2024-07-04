@@ -19,7 +19,7 @@ plugin_enable:
 # liqi用于解析雀魂消息
 liqi:
   auto_update: true  # 是否自动更新
-  liqi_version: 'v0.11.36.w'  # 本地liqi文件版本
+  liqi_version: 'v0.11.48.w'  # 本地liqi文件版本
 ''')
 try:
     with open('./config/settings.yaml', 'r', encoding='utf-8') as f:
@@ -87,9 +87,9 @@ class WebSocketAddon:
             result = liqi_proto.parse(message)
         except:
             if message.from_client is False:
-                logger.error(f'接收到(error):{result}')
+                logger.error(f'接收到(error):{message.content}')
             else:
-                logger.error(f'已发送(error):{result}')
+                logger.error(f'已发送(error):{message.content}')
         else:
             if message.from_client is False:
                 if message.injected:
