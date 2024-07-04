@@ -45,7 +45,7 @@ config:
 # 资源文件lqc.lqbin的配置                            
 resource:
   auto_update: true # 自动更新lqc.lqbin
-  lqc_lqbin_version: 'v0.11.43.w' # lqc.lqbin文件版本
+  lqc_lqbin_version: 'v0.11.56.w' # lqc.lqbin文件版本
 # 下面是游戏的资源文件内容，包括需要获得的角色、物品等，不需要修改，除非你要自定义
 mod: {}
 ''')
@@ -203,16 +203,7 @@ mod: {}
                                 p.nickname = self.settings['config']['nickname']
                             p.title = self.settings['config']['title']
                         if self.settings['config']['show_server']:
-                            match self.get_zone_id(p.account_id):
-                                case 1:
-                                    p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
-                                        'utf-8') + 'N]'+p.nickname
-                                case 2:
-                                    p.nickname = '[JP]'+p.nickname
-                                case 3:
-                                    p.nickname = '[EN]'+p.nickname
-                                case _:
-                                    p.nickname = '[??]'+p.nickname
+                            p.nickname =self.get_zone_id(p.account_id)+p.nickname
                     for p in data.update_list:
                         if p.account_id == self.safe['account_id']:
                             p.avatar_id = self.settings['config']['characters'][self.settings['config']['character']]
@@ -220,16 +211,7 @@ mod: {}
                                 p.nickname = self.settings['config']['nickname']
                             p.title = self.settings['config']['title']
                         if self.settings['config']['show_server']:
-                            match self.get_zone_id(p.account_id):
-                                case 1:
-                                    p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
-                                        'utf-8') + 'N]'+p.nickname
-                                case 2:
-                                    p.nickname = '[JP]'+p.nickname
-                                case 3:
-                                    p.nickname = '[EN]'+p.nickname
-                                case _:
-                                    p.nickname = '[??]'+p.nickname
+                            p.nickname =self.get_zone_id(p.account_id)+p.nickname
                 case '.lq.NotifyGameFinishRewardV2':
                     modify = True
                     data = liqi_pb2.NotifyGameFinishRewardV2()
@@ -248,16 +230,7 @@ mod: {}
                         data = liqi_pb2.NotifyCustomContestSystemMsg()
                         data.ParseFromString(msg_block.data)
                         for p in data.game_start.players:
-                            match self.get_zone_id(p.account_id):
-                                case 1:
-                                    p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
-                                        'utf-8') + 'N]'+p.nickname
-                                case 2:
-                                    p.nickname = '[JP]'+p.nickname
-                                case 3:
-                                    p.nickname = '[EN]'+p.nickname
-                                case _:
-                                    p.nickname = '[??]'+p.nickname
+                            p.nickname =self.get_zone_id(p.account_id)+p.nickname
         else:
             msg_id = unpack('<H', buf[1:3])[0]
             msg_block.ParseFromString(buf[3:])
@@ -350,6 +323,9 @@ mod: {}
                             fake = True
                     case '.lq.Lobby.receiveCharacterRewards':
                         fake = True
+
+
+
                 if fake:
                     modify = True
                     data = liqi_pb2.ReqLoginBeat()
@@ -456,22 +432,22 @@ mod: {}
                                     json_format.ParseDict(view, view_slot)
                                 p.verified = self.settings['config']['verified']
                             if self.settings['config']['show_server']:
-                                match self.get_zone_id(p.account_id):
-                                    case 1:
-                                        p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
-                                            'utf-8') + 'N]'+p.nickname
-                                    case 2:
-                                        p.nickname = '[JP]'+p.nickname
-                                    case 3:
-                                        p.nickname = '[EN]'+p.nickname
-                                    case _:
-                                        p.nickname = '[??]'+p.nickname
+                                p.nickname =self.get_zone_id(p.account_id)+p.nickname
                     case '.lq.FastTest.authGame':  # 进入麻将桌
                         modify = True
                         data = liqi_pb2.ResAuthGame()
                         data.ParseFromString(msg_block.data)
                         if self.settings['config']['bianjietishi']:
                             data.game_config.mode.detail_rule.bianjietishi = True
+                            if data.game_config.meta.mode_id == 15 :
+                                data.game_config.meta.mode_id =11
+                            elif data.game_config.meta.mode_id == 16:
+                                data.game_config.meta.mode_id =12
+                            elif data.game_config.meta.mode_id == 25:
+                                data.game_config.meta.mode_id =23
+                            elif data.game_config.meta.mode_id == 26:
+                                data.game_config.meta.mode_id =24
+                    
                         for p in data.players:
                             p.character.level = 5
                             p.character.is_upgraded = True
@@ -497,16 +473,7 @@ mod: {}
                                 p.verified = self.settings['config']['verified']
 
                             if self.settings['config']['show_server']:
-                                match self.get_zone_id(p.account_id):
-                                    case 1:
-                                        p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
-                                            'utf-8') + 'N]'+p.nickname
-                                    case 2:
-                                        p.nickname = '[JP]'+p.nickname
-                                    case 3:
-                                        p.nickname = '[EN]'+p.nickname
-                                    case _:
-                                        p.nickname = '[??]'+p.nickname
+                                p.nickname =self.get_zone_id(p.account_id)+p.nickname
                     case '.lq.Lobby.fetchAccountInfo':  # 个人信息页和游戏结束
                         data = liqi_pb2.ResAccountInfo()
                         data.ParseFromString(msg_block.data)
@@ -568,16 +535,7 @@ mod: {}
                                     json_format.ParseDict(view, view_slot)
                                 p.verified = self.settings['config']['verified']
                             if self.settings['config']['show_server']:
-                                match self.get_zone_id(p.account_id):
-                                    case 1:
-                                        p.nickname = '[C' + b'\xef\xbb\xbf'.decode(
-                                            'utf-8') + 'N]'+p.nickname
-                                    case 2:
-                                        p.nickname = '[JP]'+p.nickname
-                                    case 3:
-                                        p.nickname = '[EN]'+p.nickname
-                                    case _:
-                                        p.nickname = '[??]'+p.nickname
+                                p.nickname =self.get_zone_id(p.account_id)+p.nickname
                     case '.lq.Lobby.fetchBagInfo':  # 获取背包
                         modify = True
                         data = liqi_pb2.ResBagInfo()
@@ -631,7 +589,7 @@ mod: {}
                         modify = True
                         data = liqi_pb2.ResFetchInfo()
                         data.ParseFromString(msg_block.data)
-
+                        
                         # 处理角色和皮肤
                         self.safe['main_character_id'] = data.character_info.main_character_id
                         self.safe['characters'] = data.character_info.characters
@@ -694,6 +652,9 @@ mod: {}
                             views = data.all_common_views.views.add()
                             json_format.ParseDict(
                                 {'index': i, 'values': view}, views)
+                        # 处理称号
+                        data.ClearField('title_list')
+                        data.title_list.title_list.extend(self.settings['mod']['title'])
                     case '.lq.Lobby.fetchServerSettings':
                         data = liqi_pb2.ResServerSettings()
                         data.ParseFromString(msg_block.data)
@@ -702,6 +663,21 @@ mod: {}
                             data.settings.nickname_setting.enable = 0
                             data.settings.nickname_setting.ClearField(
                                 'nicknames')
+                    case '.lq.Lobby.fetchGameRecord':
+                        data = liqi_pb2.ResGameRecord()
+                        data.ParseFromString(msg_block.data)
+                        uuid = data.head.uuid
+                        result = '发现读入牌谱！\n'
+                        for account in data.head.accounts:
+                            if account.account_id == self.safe['account_id']:
+                                result+='（自己）'
+                            result += f'{self.get_zone_id(account.account_id)}{account.nickname}\n\
+账号id: {account.account_id}   加好友id: {self.encode_account_id2(account.account_id)}\n\
+主视角牌谱链接: {uuid}_a{self.encode_account_id(account.account_id)}\n\
+主视角牌谱链接（匿名）: {self.encodePaipuUUID(uuid)}_a{self.encode_account_id(account.account_id)}_2\n\n'
+                        result+='注意：只有在同一服务器才能添加好友！'
+                        logger.success(result)
+
             else:
                 logger.error(f'unknown msgtype: {msg_type}')
         if modify:
@@ -714,13 +690,46 @@ mod: {}
 
         return modify, drop, msg, inject, inject_msg
 
-    def get_zone_id(self, id):
+    def get_zone_id(self, id:int):
         i = id >> 23
         if 0 <= i <= 6:
-            return 1
+            return '[C' + b'\xef\xbb\xbf'.decode('utf-8') + 'N]'
         elif 7 <= i <= 12:
-            return 2
+            return '[JP]'
         elif 13 <= i <= 15:
-            return 3
+            return '[EN]'
         else:
-            return -1
+            return '[??]'
+    def encodePaipuUUID(self,uuid) :
+        result = ''
+        code0=ord('0')
+        codeA=ord('a')
+        for i,char in enumerate(uuid):
+            code = ord(char)
+            temp = -1
+            if code >= code0 and code0+ 10 > code :
+                temp = code - code0
+            elif code >= codeA and codeA + 26 > code:
+                temp= code - codeA + 10
+            if -1 != temp:
+                temp = (temp + 17 + i) % 36
+                if 10 > temp:
+                    result += chr(temp + code0)
+                else:
+                    result +=  chr(temp + codeA - 10)
+                
+            else:
+                result += char
+        return result
+    def encode_account_id(self,id:int) :
+            return int((7 * id + 1117113 ^ 86216345) + 1358437)
+        
+    def encode_account_id2(self,p:int):
+        p = 6139246 ^ p
+        H = 67108863
+        S = p & ~H
+        Z = p & H
+        for i in range(5):
+            Z = (511 & Z) << 17 | Z >> 9
+        return int(Z + S + 1e7)
+    
