@@ -576,6 +576,7 @@ message AccountUpdate {
     AccountABMatchUpdate ab_match = 14;
     lq.AccountActivityUpdate activity = 15;
     SegmentTaskUpdate activity_segment_task = 16;
+    MonthTicketUpdate month_ticket = 17;
 
     message NumericalUpdate {
 
@@ -647,6 +648,12 @@ message AccountUpdate {
 
         repeated lq.SegmentTaskProgress progresses = 1;
         repeated uint32 task_list = 2;
+    }
+
+    message MonthTicketUpdate {
+
+        uint32 end_time = 1;
+        uint32 last_pay_time = 2;
     }
 }
 
@@ -817,6 +824,7 @@ message Room {
     uint32 robot_count = 9;
     uint32 tournament_id = 10;
     uint32 seq = 11;
+    string pre_rule = 12;
 }
 
 message GameEndResult {
@@ -1203,6 +1211,7 @@ message AccountActivityUpdate {
     repeated ActivityCombiningLQData combining_data = 9;
     repeated lq.ActivityVillageData village_data = 10;
     repeated lq.ActivityFestivalData festival_data = 11;
+    repeated lq.ActivityIslandData island_data = 12;
 }
 
 message ActivityCombiningWorkbench {
@@ -1318,6 +1327,12 @@ message TimeCounterData {
     uint32 update_time = 2;
 }
 
+message SignedTimeCounterData {
+
+    int32 count = 1;
+    uint32 update_time = 2;
+}
+
 message FestivalProposalData {
 
     uint32 id = 1;
@@ -1331,7 +1346,45 @@ message ActivityFestivalData {
     uint32 level = 2;
     repeated FestivalProposalData proposal_list = 3;
     repeated uint32 event_list = 4;
-    TimeCounterData buy_record = 5;
+    SignedTimeCounterData buy_record = 5;
+}
+
+message IslandBagItemData {
+
+    uint32 id = 1;
+    repeated uint32 pos = 2;
+    uint32 rotate = 3;
+    uint32 goods_id = 4;
+    uint32 price = 5;
+}
+
+message IslandBagData {
+
+    uint32 id = 1;
+    string matrix = 2;
+    repeated IslandBagItemData items = 3;
+}
+
+message IslandGoodsData {
+
+    uint32 goods_id = 1;
+    int32 count = 2;
+    uint32 update_time = 3;
+}
+
+message IslandZoneData {
+
+    uint32 id = 1;
+    SignedTimeCounterData currency_used = 2;
+    repeated IslandGoodsData goods_records = 3;
+}
+
+message ActivityIslandData {
+
+    uint32 activity_id = 1;
+    uint32 zone = 2;
+    repeated IslandBagData bags = 3;
+    repeated IslandZoneData zones = 4;
 }
 
 message ActivityFeedData {
@@ -1743,6 +1796,9 @@ message CustomizedContestBase {
     uint32 finish_time = 8;
     bool open = 9;
     uint32 contest_type = 10;
+    string public_notice = 11;
+    uint32 check_state = 12;
+    string checking_name = 13;
 }
 
 message CustomizedContestExtend {
@@ -1784,6 +1840,9 @@ message CustomizedContestDetail {
     uint32 emoji_switch = 14;
     uint32 contest_type = 15;
     uint32 disable_broadcast = 16;
+    uint32 signup_start_time = 17;
+    uint32 signup_end_time = 18;
+    uint32 signup_type = 19;
 }
 
 message CustomizedContestPlayerReport {
@@ -2579,14 +2638,14 @@ service Lobby {
     rpc gainVipReward (ReqGainVipReward) returns (ResCommon);
     rpc fetchRefundOrder (ReqCommon) returns (ResFetchRefundOrder);
     rpc fetchCustomizedContestList (ReqFetchCustomizedContestList) returns (ResFetchCustomizedContestList);
-    rpc fetchCustomizedContestExtendInfo (ReqFetchCustomizedContestExtendInfo) returns (ResFetchCustomizedContestExtendInfo);
     rpc fetchCustomizedContestAuthInfo (ReqFetchCustomizedContestAuthInfo) returns (ResFetchCustomizedContestAuthInfo);
     rpc enterCustomizedContest (ReqEnterCustomizedContest) returns (ResEnterCustomizedContest);
     rpc leaveCustomizedContest (ReqCommon) returns (ResCommon);
     rpc fetchCustomizedContestOnlineInfo (ReqFetchCustomizedContestOnlineInfo) returns (ResFetchCustomizedContestOnlineInfo);
     rpc fetchCustomizedContestByContestId (ReqFetchCustomizedContestByContestId) returns (ResFetchCustomizedContestByContestId);
+    rpc signupCustomizedContest (ReqSignupCustomizedContest) returns (ResSignupCustomizedContest);
     rpc startCustomizedContest (ReqStartCustomizedContest) returns (ResCommon);
-    rpc stopCustomizedContest (ReqCommon) returns (ResCommon);
+    rpc stopCustomizedContest (ReqStopCustomizedContest) returns (ResCommon);
     rpc joinCustomizedContestChatRoom (ReqJoinCustomizedContestChatRoom) returns (ResJoinCustomizedContestChatRoom);
     rpc leaveCustomizedContestChatRoom (ReqCommon) returns (ResCommon);
     rpc sayChatMessage (ReqSayChatMessage) returns (ResCommon);
@@ -2598,6 +2657,7 @@ service Lobby {
     rpc fetchAccountActivityData (ReqCommon) returns (ResAccountActivityData);
     rpc exchangeActivityItem (ReqExchangeActivityItem) returns (ResExchangeActivityItem);
     rpc completeActivityTask (ReqCompleteActivityTask) returns (ResCommon);
+    rpc completeActivityTaskBatch (ReqCompleteActivityTaskBatch) returns (ResCommon);
     rpc completeActivityFlipTask (ReqCompleteActivityTask) returns (ResCommon);
     rpc completePeriodActivityTask (ReqCompleteActivityTask) returns (ResCommon);
     rpc completePeriodActivityTaskBatch (ReqCompletePeriodActivityTaskBatch) returns (ResCommon);
@@ -2690,6 +2750,15 @@ service Lobby {
     rpc resolveFestivalActivityProposal (ReqResolveFestivalActivityProposal) returns (ResResolveFestivalActivityProposal);
     rpc resolveFestivalActivityEvent (ReqResolveFestivalActivityEvent) returns (ResResolveFestivalActivityEvent);
     rpc buyFestivalProposal (ReqBuyFestivalProposal) returns (ResBuyFestivalProposal);
+    rpc islandActivityMove (ReqIslandActivityMove) returns (ResCommon);
+    rpc islandActivityBuy (ReqIslandActivityBuy) returns (ResCommon);
+    rpc islandActivitySell (ReqIslandActivitySell) returns (ResCommon);
+    rpc islandActivityTidyBag (ReqIslandActivityTidyBag) returns (ResCommon);
+    rpc islandActivityUnlockBagGrid (ReqIslandActivityUnlockBagGrid) returns (ResCommon);
+    rpc createCustomizedContest (ReqCreateCustomizedContest) returns (ResCreateCustomizedContest);
+    rpc fetchManagerCustomizedContestList (ReqFetchmanagerCustomizedContestList) returns (ResFetchManagerCustomizedContestList);
+    rpc fetchManagerCustomizedContest (ReqFetchManagerCustomizedContest) returns (ResFetchManagerCustomizedContest);
+    rpc updateManagerCustomizedContest (ReqUpdateManagerCustomizedContest) returns (ResCommon);
 }
 
 message ResConnectionInfo {
@@ -2986,6 +3055,7 @@ message ReqCreateRoom {
     GameMode mode = 2;
     bool public_live = 3;
     string client_version_string = 4;
+    string pre_rule = 5;
 }
 
 message ResCreateRoom {
@@ -3483,6 +3553,7 @@ message ReqUserComplain {
 message ReqReadAnnouncement {
 
     uint32 announcement_id = 1;
+    repeated uint32 announcement_list = 2;
 }
 
 message ResReviveCoinInfo {
@@ -3637,6 +3708,7 @@ message ReqRollingNotice {
 message ResServerTime {
 
     uint32 server_time = 1;
+    Error error = 2;
 }
 
 message ReqPlatformBillingProducts {
@@ -4589,6 +4661,7 @@ message ReqFetchCustomizedContestList {
 
     uint32 start = 1;
     uint32 count = 2;
+    string lang = 3;
 }
 
 message ResFetchCustomizedContestList {
@@ -4596,17 +4669,6 @@ message ResFetchCustomizedContestList {
     Error error = 1;
     repeated CustomizedContestBase contests = 2;
     repeated CustomizedContestBase follow_contests = 3;
-}
-
-message ReqFetchCustomizedContestExtendInfo {
-
-    repeated uint32 uid_list = 1;
-}
-
-message ResFetchCustomizedContestExtendInfo {
-
-    Error error = 1;
-    repeated CustomizedContestExtend extend_list = 2;
 }
 
 message ReqFetchCustomizedContestAuthInfo {
@@ -4623,6 +4685,7 @@ message ResFetchCustomizedContestAuthInfo {
 message ReqEnterCustomizedContest {
 
     uint32 unique_id = 1;
+    string lang = 2;
 }
 
 message ResEnterCustomizedContest {
@@ -4631,6 +4694,7 @@ message ResEnterCustomizedContest {
     CustomizedContestDetail detail_info = 2;
     CustomizedContestPlayerReport player_report = 3;
     bool is_followed = 4;
+    uint32 state = 5;
 }
 
 message ReqFetchCustomizedContestOnlineInfo {
@@ -4647,6 +4711,7 @@ message ResFetchCustomizedContestOnlineInfo {
 message ReqFetchCustomizedContestByContestId {
 
     uint32 contest_id = 1;
+    string lang = 2;
 }
 
 message ResFetchCustomizedContestByContestId {
@@ -4655,10 +4720,27 @@ message ResFetchCustomizedContestByContestId {
     CustomizedContestAbstract contest_info = 2;
 }
 
+message ReqSignupCustomizedContest {
+
+    uint32 unique_id = 1;
+    string client_version_string = 2;
+}
+
+message ResSignupCustomizedContest {
+
+    Error error = 1;
+    uint32 state = 2;
+}
+
 message ReqStartCustomizedContest {
 
     uint32 unique_id = 1;
     string client_version_string = 2;
+}
+
+message ReqStopCustomizedContest {
+
+    uint32 unique_id = 1;
 }
 
 message ReqJoinCustomizedContestChatRoom {
@@ -4669,12 +4751,13 @@ message ReqJoinCustomizedContestChatRoom {
 message ResJoinCustomizedContestChatRoom {
 
     Error error = 1;
-    repeated bytes chat_history = 2;
+    string token = 2;
 }
 
 message ReqSayChatMessage {
 
     string content = 1;
+    uint32 unique_id = 2;
 }
 
 message ReqFetchCustomizedContestGameLiveList {
@@ -4692,6 +4775,7 @@ message ReqFetchCustomizedContestGameRecords {
 
     uint32 unique_id = 1;
     uint32 last_index = 2;
+    uint32 season_id = 3;
 }
 
 message ResFetchCustomizedContestGameRecords {
@@ -4740,6 +4824,7 @@ message ResAccountActivityData {
     repeated lq.ActivityCombiningLQData combining_data = 24;
     repeated lq.ActivityVillageData village_data = 25;
     repeated lq.ActivityFestivalData festival_data = 26;
+    repeated lq.ActivityIslandData island_data = 27;
 
     message ActivitySignInData {
 
@@ -4807,6 +4892,11 @@ message ResExchangeActivityItem {
 message ReqCompleteActivityTask {
 
     uint32 task_id = 1;
+}
+
+message ReqCompleteActivityTaskBatch {
+
+    repeated uint32 task_list = 1;
 }
 
 message ReqCompletePeriodActivityTaskBatch {
@@ -5880,6 +5970,124 @@ message ResBuyFestivalProposal {
 
     Error error = 1;
     FestivalProposalData new_proposal = 2;
+}
+
+message ReqIslandActivityMove {
+
+    uint32 activity_id = 1;
+    uint32 zone_id = 2;
+}
+
+message ReqIslandActivityBuy {
+
+    uint32 activity_id = 1;
+    repeated BuyItems items = 2;
+
+    message BuyItems {
+
+        uint32 goods_id = 2;
+        repeated uint32 pos = 3;
+        uint32 rotate = 4;
+        uint32 bag_id = 5;
+        uint32 price = 6;
+    }
+}
+
+message ReqIslandActivitySell {
+
+    uint32 activity_id = 1;
+    repeated SellItem items = 2;
+
+    message SellItem {
+
+        uint32 bag_id = 2;
+        uint32 id = 3;
+        uint32 price = 4;
+    }
+}
+
+message ReqIslandActivityTidyBag {
+
+    uint32 activity_id = 1;
+    repeated BagData bag_data = 2;
+
+    message BagData {
+
+        uint32 bag_id = 2;
+        repeated ITemData items = 3;
+        repeated uint32 drops = 4;
+
+        message ITemData {
+
+            uint32 id = 1;
+            repeated uint32 pos = 2;
+            uint32 rotate = 3;
+        }
+    }
+}
+
+message ReqIslandActivityUnlockBagGrid {
+
+    uint32 activity_id = 1;
+    uint32 bag_id = 2;
+    repeated uint32 pos = 3;
+}
+
+message ReqCreateCustomizedContest {
+
+    string name = 1;
+    uint32 open_show = 2;
+    GameMode game_rule_setting = 3;
+    uint32 start_time = 4;
+    uint32 end_time = 5;
+}
+
+message ResCreateCustomizedContest {
+
+    Error error = 1;
+    uint32 unique_id = 2;
+}
+
+message ReqFetchmanagerCustomizedContestList {
+
+    string lang = 1;
+}
+
+message ResFetchManagerCustomizedContestList {
+
+    Error error = 1;
+    repeated CustomizedContestBase contests = 2;
+}
+
+message ReqFetchManagerCustomizedContest {
+
+    uint32 unique_id = 1;
+}
+
+message ResFetchManagerCustomizedContest {
+
+    Error error = 1;
+    string name = 2;
+    uint32 open_show = 3;
+    GameMode game_rule_setting = 4;
+    uint32 start_time = 5;
+    uint32 end_time = 6;
+    uint32 auto_match = 7;
+    uint32 rank_rule = 8;
+    uint32 check_state = 9;
+    string checking_name = 10;
+}
+
+message ReqUpdateManagerCustomizedContest {
+
+    string name = 1;
+    uint32 open_show = 2;
+    GameMode game_rule_setting = 3;
+    uint32 start_time = 4;
+    uint32 end_time = 5;
+    uint32 unique_id = 6;
+    uint32 auto_match = 7;
+    uint32 rank_rule = 8;
 }
 
 message ActionMJStart {
