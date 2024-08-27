@@ -23,7 +23,7 @@
 可以直接点击图片进入，也可以通过扫码进入。
 
 ### ☕请作者喝咖啡
-[点我为作者发电（爱发电，支持微信/支付宝）](https://afdian.net/a/Avenshy)
+[点我为作者发电（爱发电，支持微信/支付宝）](https://afdian.com/a/Avenshy)
 
 [点我为作者发电（Patreon，支持信用卡/Paypal）](https://patreon.com/Avenshy)
 
