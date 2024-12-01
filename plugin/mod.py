@@ -11,7 +11,8 @@ from .update_liqi import get_version
 
 
 class mod:
-    def __init__(self):
+    def __init__(self,version):
+        self.version = version
         self.safe = {}
         self.yaml = YAML()
         self.LoadSettings()
@@ -605,7 +606,7 @@ mod: {}
                         MyAnnouncement.title = '雀魂MAX载入成功'
                         MyAnnouncement.id = 666666
                         MyAnnouncement.header_image = 'internal://2.jpg'
-                        MyAnnouncement.content = '<color=#f9963b>作者：Avenshy        版本：20240704</color>\n\
+                        MyAnnouncement.content = f'<color=#f9963b>作者：Avenshy        版本：{self.version}</color>\n\
 <b>本工具完全免费、开源，如果您为此付费，说明您被骗了！</b>\n\
 <b>本工具仅供学习交流，请在下载后24小时内删除，不得用于商业用途，否则后果自负！</b>\n\
 <b>本工具有可能导致账号被封禁，给猫粮充钱才是正道！</b>\n\n\

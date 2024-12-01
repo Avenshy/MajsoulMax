@@ -9,7 +9,7 @@ from ruamel.yaml import YAML
 from sys import stdout
 from plugin import update_liqi
 
-VERSION = '20241201'
+VERSION = '20241202'
 logger.warning(f'\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}\n\
 开源地址：https://github.com/Avenshy/MajsoulMax\n\n\
 本工具完全免费、开源，如果您为此付费，说明您被骗了！\n\
@@ -64,7 +64,7 @@ logger.success(
     启用helper：{HELPER_ENABLE}\n
     ''')
 if MOD_ENABLE:
-    mod_plugin = mod.mod()
+    mod_plugin = mod.mod(VERSION)
 if HELPER_ENABLE:
     helper_plugin = helper.helper()
 liqi_proto = liqi_new.LiqiProto()
