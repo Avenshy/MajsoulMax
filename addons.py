@@ -1,10 +1,24 @@
+import liqi_new
+import asyncio
+from mitmproxy.tools.dump import DumpMaster
+from mitmproxy.options import Options
 from loguru import logger
 from mitmproxy import http, ctx
-import liqi_new
 from plugin import helper, mod
 from ruamel.yaml import YAML
 from sys import stdout
 from plugin import update_liqi
+
+VERSION = '20241201'
+logger.warning(f'\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}\n\
+开源地址：https://github.com/Avenshy/MajsoulMax\n\n\
+本工具完全免费、开源，如果您为此付费，说明您被骗了！\n\
+本工具仅供学习交流，请在下载后24小时内删除，不得用于商业用途，否则后果自负！\n\
+本工具有可能导致账号被封禁，给猫粮充钱才是正道！\n\n\
+请作者喝咖啡：\n\
+爱发电，支持支付宝、微信：https://afdian.net/a/Avenshy\n\
+Patreon，支持Paypal、信用卡：https://patreon.com/Avenshy\n\n\
+再次重申：脚本完全免费使用，没有收费功能，请喝咖啡完全自愿，作者非常感谢您！\n\n')
 
 logger.remove()
 logger.add(stdout, colorize=True,
@@ -19,7 +33,8 @@ plugin_enable:
 # liqi用于解析雀魂消息
 liqi:
   auto_update: true  # 是否自动更新
-  liqi_version: 'v0.11.48.w'  # 本地liqi文件版本
+  github_token: '' # 仅供自己使用，请勿泄漏给任何人
+  liqi_version: 'v0.11.107.w'  # 本地liqi文件版本
 ''')
 try:
     with open('./config/settings.yaml', 'r', encoding='utf-8') as f:
@@ -38,7 +53,7 @@ if SETTINGS['liqi']['auto_update']:
     logger.info('正在检测liqi文件更新，请稍候……')
     try:
         SETTINGS['liqi']['liqi_version'] = update_liqi.update(
-            SETTINGS['liqi']['liqi_version'])
+            SETTINGS['liqi']['liqi_version'],SETTINGS['liqi']['github_token'])
     except:
         logger.critical('liqi文件更新失败！可能会导致部分消息无法解析！')
 with open('./config/settings.yaml', 'w', encoding='utf-8') as f:
@@ -113,3 +128,21 @@ class WebSocketAddon:
 addons = [
     WebSocketAddon()
 ]
+
+
+async def start_mitm():
+    # 创建 mitmproxy 配置
+    opts = Options(listen_host='0.0.0.0', listen_port=23410,ssl_insecure=True)
+    # 创建 DumpMaster，类似于 mitmdump 的功能
+    master = DumpMaster(opts)
+    # 加载自定义插件
+    master.addons.add(WebSocketAddon())
+    try:
+        # 启动 mitmproxy
+        await master.run()
+        master
+    except KeyboardInterrupt:
+        master.shutdown()
+
+if __name__ == "__main__":
+    asyncio.run(start_mitm())

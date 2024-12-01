@@ -1,11 +1,13 @@
-from ruamel.yaml import YAML
-from loguru import logger
 import liqi_new
 import requests
+import random
+from ruamel.yaml import YAML
+from loguru import logger
 from struct import unpack
 from proto import liqi_pb2, config_pb2, sheets_pb2, basic_pb2
 from google.protobuf import json_format
 from .update_liqi import get_version
+
 
 
 class mod:
@@ -42,10 +44,13 @@ config:
   show_server: true # 显示其他玩家所在服务器
   verified: 0 # 标识设置，0为无标识，1为主播标识，2为Pro标识，显示在名字后面
   anti_replace_nickname: true # 禁止将外服玩家设为默认名称，特殊时期必备
+  random_character: # 对局随机角色皮肤
+    enabled: false
+    pool: []
 # 资源文件lqc.lqbin的配置                            
 resource:
   auto_update: true # 自动更新lqc.lqbin
-  lqc_lqbin_version: 'v0.11.56.w' # lqc.lqbin文件版本
+  lqc_lqbin_version: 'v0.11.104.w' # lqc.lqbin文件版本
 # 下面是游戏的资源文件内容，包括需要获得的角色、物品等，不需要修改，除非你要自定义
 mod: {}
 ''')
@@ -158,7 +163,7 @@ mod: {}
         # 获取资源文件版本
         new_version = get_version()
 
-        prefix = self.get_prefix(new_version['version'])
+        prefix = self.get_prefix(new_version)
 
         # 校验版本是否相同
         if self.settings['resource']['lqc_lqbin_version'] == prefix:
@@ -202,16 +207,17 @@ mod: {}
                             if self.settings['config']['nickname'] != '':
                                 p.nickname = self.settings['config']['nickname']
                             p.title = self.settings['config']['title']
+
                         if self.settings['config']['show_server']:
                             p.nickname =self.get_zone_id(p.account_id)+p.nickname
-                    for p in data.update_list:
-                        if p.account_id == self.safe['account_id']:
-                            p.avatar_id = self.settings['config']['characters'][self.settings['config']['character']]
-                            if self.settings['config']['nickname'] != '':
-                                p.nickname = self.settings['config']['nickname']
-                            p.title = self.settings['config']['title']
-                        if self.settings['config']['show_server']:
-                            p.nickname =self.get_zone_id(p.account_id)+p.nickname
+                    # for p in data.update_list:
+                    #     if p.account_id == self.safe['account_id']:
+                    #         p.avatar_id = self.settings['config']['characters'][self.settings['config']['character']]
+                    #         if self.settings['config']['nickname'] != '':
+                    #             p.nickname = self.settings['config']['nickname']
+                    #         p.title = self.settings['config']['title']
+                    #     if self.settings['config']['show_server']:
+                    #         p.nickname =self.get_zone_id(p.account_id)+p.nickname
                 case '.lq.NotifyGameFinishRewardV2':
                     modify = True
                     data = liqi_pb2.NotifyGameFinishRewardV2()
@@ -231,6 +237,11 @@ mod: {}
                         data.ParseFromString(msg_block.data)
                         for p in data.game_start.players:
                             p.nickname =self.get_zone_id(p.account_id)+p.nickname
+                case '.lq.NotifyAnnouncementUpdate':
+                    modify = True
+                    data = liqi_pb2.NotifyAnnouncementUpdate()
+                    data.ParseFromString(msg_block.data)
+                    
         else:
             msg_id = unpack('<H', buf[1:3])[0]
             msg_block.ParseFromString(buf[3:])
@@ -300,6 +311,12 @@ mod: {}
                         modify = True
                         data = liqi_pb2.ReqSaveCommonViews()
                         data.ParseFromString(msg_block.data)
+                        for view in data.views:
+                            if view.type == 0 and view.item_id_list != []:
+                                view.ClearField('item_id_list')
+                            elif view.type == 1 and view.item_id != 0:
+                                view.ClearField('item_id')
+
                         views = json_format.MessageToDict(
                             data, including_default_value_fields=True, preserving_proto_field_name=True)
                         self.settings['config']['views'][views['save_index']
@@ -323,7 +340,13 @@ mod: {}
                             fake = True
                     case '.lq.Lobby.receiveCharacterRewards':
                         fake = True
-
+                    case '.lq.Lobby.setRandomCharacter':
+                        fake = True
+                        data = liqi_pb2.ReqRandomCharacter()
+                        data.ParseFromString(msg_block.data)
+                        self.settings['config']['random_character']['enabled'] = data.enabled
+                        self.settings['config']['random_character']['pool'] = json_format.MessageToDict(data, including_default_value_fields=True, preserving_proto_field_name=True)['pool']
+                        self.SaveSettings()
 
 
                 if fake:
@@ -360,7 +383,7 @@ mod: {}
                             character.rewarded_level.extend([1, 2, 3, 4, 5])
                             if c not in character_keys:
                                 self.settings['config']['characters'][c] = int(
-                                    '40'+str(c)[4:6]+'01')
+                                    '40'+str(c)[4:]+'01')
                             character.skin = self.settings['config']['characters'][c]
                             if self.settings['config']['emoji']:
                                 character.extra_emoji.extend(
@@ -394,7 +417,7 @@ mod: {}
                                 'characters'][self.settings['config']['character']]
                         else:
                             data.account.avatar_id = int(
-                                '40'+str(self.settings['config']['character'])[4:6]+'01')
+                                '40'+str(self.settings['config']['character'])[4:]+'01')
                         for view in self.settings['config']['views'][self.settings['config']['views_index']]:
                             if view['slot'] == 5:
                                 data.account.avatar_frame = view['item_id']
@@ -453,11 +476,14 @@ mod: {}
                             p.character.is_upgraded = True
                             p.character.rewarded_level.extend([1, 2, 3, 4, 5])
                             if p.account_id == self.safe['account_id']:
-                                p.avatar_id = self.settings['config']['characters'][self.settings['config']['character']]
-                                p.character.charid = self.settings['config']['character']
+                                if self.settings['config']['random_character']['enabled'] and self.settings['config']['random_character']['pool']!=[]: # 处理随机角色
+                                    item = random.choice(self.settings['config']['random_character']['pool'])
+                                    p.character.charid = item['character_id']
+                                    p.avatar_id = p.character.skin = item['skin_id']
+                                else:
+                                    p.character.charid = self.settings['config']['character']
+                                    p.avatar_id = p.character.skin = self.settings['config']['characters'][self.settings['config']['character']]
                                 p.character.exp = 0
-                                p.character.skin = self.settings['config'][
-                                    'characters'][self.settings['config']['character']]
                                 if self.settings['config']['emoji']:
                                     p.character.extra_emoji.extend(
                                         self.settings['mod']['emoji'][p.character.charid])
@@ -467,7 +493,12 @@ mod: {}
                                 p.ClearField('views')
                                 for view in self.settings['config']['views'][self.settings['config']['views_index']]:
                                     view_slot = p.views.add()
-                                    json_format.ParseDict(view, view_slot)
+                                    #json_format.ParseDict(view, view_slot)
+                                    view_slot.slot = view['slot']
+                                    if view['type'] == 0: # 非随机装扮
+                                        view_slot.item_id = view['item_id']
+                                    else: # 随机装扮，要自己抽
+                                        view_slot.item_id = random.choice(view['item_id_list'])
                                     if view['slot'] == 5:
                                         p.avatar_frame = view['item_id']
                                 p.verified = self.settings['config']['verified']
@@ -574,7 +605,7 @@ mod: {}
                         MyAnnouncement.title = '雀魂MAX载入成功'
                         MyAnnouncement.id = 666666
                         MyAnnouncement.header_image = 'internal://2.jpg'
-                        MyAnnouncement.content = '<color=#f9963b>作者：Avenshy        版本：20240508</color>\n\
+                        MyAnnouncement.content = '<color=#f9963b>作者：Avenshy        版本：20240704</color>\n\
 <b>本工具完全免费、开源，如果您为此付费，说明您被骗了！</b>\n\
 <b>本工具仅供学习交流，请在下载后24小时内删除，不得用于商业用途，否则后果自负！</b>\n\
 <b>本工具有可能导致账号被封禁，给猫粮充钱才是正道！</b>\n\n\
@@ -605,7 +636,7 @@ mod: {}
                             character.rewarded_level.extend([1, 2, 3, 4, 5])
                             if c not in character_keys:
                                 self.settings['config']['characters'][c] = int(
-                                    '40'+str(c)[4:6]+'01')
+                                    '40'+str(c)[4:]+'01')
                             character.skin = self.settings['config']['characters'][c]
                             if self.settings['config']['emoji']:
                                 character.extra_emoji.extend(
@@ -655,6 +686,11 @@ mod: {}
                         # 处理称号
                         data.ClearField('title_list')
                         data.title_list.title_list.extend(self.settings['mod']['title'])
+                        # 处理随机角色皮肤
+                        data.ClearField('random_character')
+                        json_format.ParseDict(self.settings['config']['random_character'],data.random_character)
+
+
                     case '.lq.Lobby.fetchServerSettings':
                         data = liqi_pb2.ResServerSettings()
                         data.ParseFromString(msg_block.data)
@@ -669,6 +705,15 @@ mod: {}
                         uuid = data.head.uuid
                         result = '发现读入牌谱！\n'
                         for account in data.head.accounts:
+                            match account.seat:
+                                case 0:
+                                    result+='東: '
+                                case 1:
+                                    result+='南: '
+                                case 2:
+                                    result+='西: '
+                                case 3:
+                                    result+='北: '
                             if account.account_id == self.safe['account_id']:
                                 result+='（自己）'
                             result += f'{self.get_zone_id(account.account_id)}{account.nickname}\n\
@@ -677,6 +722,11 @@ mod: {}
 主视角牌谱链接（匿名）: {self.encodePaipuUUID(uuid)}_a{self.encode_account_id(account.account_id)}_2\n\n'
                         result+='注意：只有在同一服务器才能添加好友！'
                         logger.success(result)
+                    case '.lq.Lobby.fetchRandomCharacter':
+                        modify = True
+                        data = liqi_pb2.ResRandomCharacter()
+                        json_format.ParseDict(self.settings['config']['random_character'],data)
+
 
             else:
                 logger.error(f'unknown msgtype: {msg_type}')
@@ -733,3 +783,5 @@ mod: {}
             Z = (511 & Z) << 17 | Z >> 9
         return int(Z + S + 1e7)
     
+if __name__ == '__main__':
+    mod.mod()

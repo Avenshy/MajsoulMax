@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package lq;
 
+option go_package = ".;majprotocol";
+
 message NotifyCaptcha {
 
     uint32 check_id = 1;
@@ -57,12 +59,12 @@ message NotifyRoomPlayerDressing {
 
 message NotifyRoomPlayerUpdate {
 
-    repeated PlayerBaseView update_list = 1;
-    repeated uint32 remove_list = 2;
     uint32 owner_id = 3;
     uint32 robot_count = 4;
-    repeated PlayerBaseView player_list = 5;
+    repeated PlayerGameView player_list = 5;
     uint32 seq = 6;
+    repeated PlayerGameView robots = 7;
+    repeated uint32 positions = 8;
 }
 
 message NotifyRoomKickOut {
@@ -209,8 +211,9 @@ message NotifyNewComment {
 }
 
 message NotifyRollingNotice {
+}
 
-    repeated RollingNotice notice = 1;
+message NotifyMaintainNotice {
 }
 
 message NotifyGiftSendRefresh {
@@ -577,6 +580,7 @@ message AccountUpdate {
     lq.AccountActivityUpdate activity = 15;
     SegmentTaskUpdate activity_segment_task = 16;
     MonthTicketUpdate month_ticket = 17;
+    MainCharacterUpdate main_character = 18;
 
     message NumericalUpdate {
 
@@ -655,6 +659,12 @@ message AccountUpdate {
         uint32 end_time = 1;
         uint32 last_pay_time = 2;
     }
+
+    message MainCharacterUpdate {
+
+        uint32 character_id = 1;
+        uint32 skin_id = 2;
+    }
 }
 
 message GameMetaData {
@@ -669,6 +679,12 @@ message AccountPlayingGame {
     string game_uuid = 1;
     uint32 category = 2;
     GameMetaData meta = 3;
+}
+
+message RandomCharacter {
+
+    uint32 character_id = 1;
+    uint32 skin_id = 2;
 }
 
 message AccountCacheView {
@@ -809,6 +825,7 @@ message GameDetailRule {
     uint32 enable_baopai_extend_settings = 69;
     uint32 yongchang_mode = 70;
     uint32 hunzhiyiji_mode = 71;
+    uint32 wanxiangxiuluo_mode = 72;
 }
 
 message Room {
@@ -825,6 +842,8 @@ message Room {
     uint32 tournament_id = 10;
     uint32 seq = 11;
     string pre_rule = 12;
+    repeated PlayerGameView robots = 13;
+    repeated uint32 positions = 14;
 }
 
 message GameEndResult {
@@ -1212,6 +1231,8 @@ message AccountActivityUpdate {
     repeated lq.ActivityVillageData village_data = 10;
     repeated lq.ActivityFestivalData festival_data = 11;
     repeated lq.ActivityIslandData island_data = 12;
+    repeated lq.ActivityAmuletData amulet_data = 13;
+    repeated lq.ActivityStoryData story_data = 14;
 }
 
 message ActivityCombiningWorkbench {
@@ -1387,6 +1408,174 @@ message ActivityIslandData {
     repeated IslandZoneData zones = 4;
 }
 
+message AmuletEffectData {
+
+    uint32 id = 1;
+    uint32 uid = 2;
+    repeated int32 store = 3;
+}
+
+message AmuletBuffData {
+
+    uint32 id = 1;
+    repeated int32 store = 3;
+}
+
+message AmuletGameShopGoods {
+
+    uint32 id = 1;
+    bool sold = 2;
+    uint32 goods_id = 3;
+}
+
+message AmuletActivityTingInfo {
+
+    string tile = 1;
+    uint64 fan = 2;
+    string ting_tile = 3;
+}
+
+message AmuletShowDesktopTileData {
+
+    uint32 id = 1;
+    uint32 pos = 2;
+}
+
+message AmuletGameOperation {
+
+    uint32 type = 1;
+    repeated GangTiles gang = 2;
+    uint32 effect_id = 3;
+
+    message GangTiles {
+
+        repeated uint32 tiles = 1;
+    }
+}
+
+message AmuletGameShopData {
+
+    repeated AmuletGameShopGoods goods = 1;
+    repeated uint32 effect_list = 2;
+    uint32 shop_refresh_count = 3;
+    uint32 refresh_price = 4;
+}
+
+message AmuletGameUpdateData {
+
+    repeated AmuletTile tile_replace = 1;
+    repeated string tian_dora = 2;
+    repeated uint32 dora = 4;
+    repeated uint32 hands = 7;
+    repeated AmuletMingInfo ming = 8;
+    repeated AmuletEffectData effect_list = 9;
+    repeated AmuletEffectData buff_list = 10;
+    string point = 13;
+    uint32 coin = 14;
+    uint32 stage = 22;
+    uint32 desktop_remain = 26;
+    repeated AmuletShowDesktopTileData show_desktop_tiles = 28;
+    repeated AmuletActivityTingInfo ting_list = 30;
+    repeated AmuletGameOperation next_operation = 31;
+    repeated uint32 used_desktop = 34;
+    ActivityAmuletHuRecord highest_hu = 35;
+    ActivityAmuletRecord records = 36;
+}
+
+message AmuletGameRecordData {
+
+    uint32 key = 1;
+    int32 int_value = 2;
+    string str_value = 3;
+    repeated int32 int_arr_value = 4;
+}
+
+message AmuletGameData {
+
+    repeated AmuletTile pool = 1;
+    repeated AmuletTile tile_replace = 2;
+    repeated string tian_dora = 3;
+    repeated uint32 mountain = 4;
+    repeated uint32 dora = 5;
+    repeated uint32 hands = 7;
+    repeated AmuletMingInfo ming = 8;
+    repeated AmuletEffectData effect_list = 9;
+    repeated AmuletBuffData buff_list = 10;
+    uint32 level = 11;
+    string point = 13;
+    uint32 coin = 14;
+    AmuletGameShopData shop = 16;
+    repeated uint32 used = 20;
+    repeated uint32 boss_buff = 21;
+    uint32 stage = 22;
+    repeated uint32 desktop = 24;
+    repeated uint32 show_desktop = 25;
+    uint32 desktop_remain = 26;
+    repeated uint32 free_effect_list = 27;
+    repeated AmuletShowDesktopTileData show_desktop_tiles = 28;
+    uint32 change_tile_count = 29;
+    repeated AmuletActivityTingInfo ting_list = 30;
+    repeated AmuletGameOperation next_operation = 31;
+    repeated AmuletBuffData shop_buff_list = 32;
+    int32 remain_change_tile_count = 33;
+    repeated uint32 used_desktop = 34;
+    uint32 after_gang = 35;
+    repeated AmuletGameRecordData record_data = 36;
+    repeated AmuletBuffData skill_buff_list = 37;
+    uint32 max_effect_count = 38;
+    ActivityAmuletHuRecord highest_hu = 39;
+    uint32 total_consumed_coin = 40;
+    repeated uint32 boss_buff_id = 41;
+}
+
+message ActivityAmuletUpdateData {
+
+    uint32 activity_id = 1;
+    AmuletGameUpdateData game_update = 2;
+    bool game_empty = 3;
+}
+
+message AmuletSkillData {
+
+    uint32 id = 1;
+    uint32 level = 2;
+}
+
+message ActivityAmuletUpgradeData {
+
+    repeated AmuletSkillData skill = 2;
+}
+
+message ActivityAmuletRecord {
+
+    uint32 effect_gain_count = 1;
+    uint32 hu_count = 2;
+}
+
+message ActivityAmuletHuRecord {
+
+    string point = 1;
+    string pai = 2;
+    uint64 fan = 3;
+    uint64 base = 4;
+}
+
+message ActivityAmuletIllustratedBookData {
+
+    repeated uint32 effect_collection = 1;
+    ActivityAmuletHuRecord highest_hu = 2;
+    uint32 highest_level = 3;
+}
+
+message ActivityAmuletData {
+
+    uint32 activity_id = 1;
+    AmuletGameData game = 2;
+    uint32 version = 3;
+    ActivityAmuletUpgradeData upgrade = 4;
+    ActivityAmuletIllustratedBookData illustrated_book = 5;
+}
+
 message ActivityFeedData {
 
     uint32 activity_id = 1;
@@ -1411,6 +1600,21 @@ message ActivityFeedData {
         uint32 time = 5;
         uint32 received = 6;
     }
+}
+
+message UnlockedStoryData {
+
+    uint32 story_id = 1;
+    repeated uint32 finished_ending = 2;
+    repeated uint32 rewarded_ending = 3;
+    uint32 finish_rewarded = 4;
+    uint32 all_finish_rewarded = 5;
+}
+
+message ActivityStoryData {
+
+    uint32 activity_id = 1;
+    repeated UnlockedStoryData unlocked_story = 2;
 }
 
 message ActivityFriendGiftData {
@@ -1606,12 +1810,17 @@ message CommentItem {
 
 message RollingNotice {
 
-    uint32 id = 1;
     string content = 2;
     uint32 start_time = 3;
     uint32 end_time = 4;
     uint32 repeat_interval = 5;
-    string lang = 6;
+    repeated uint32 repeat_time = 7;
+    uint32 repeat_type = 8;
+}
+
+message MaintainNotice {
+
+    uint32 maintain_time = 1;
 }
 
 message BillingGoods {
@@ -1843,6 +2052,7 @@ message CustomizedContestDetail {
     uint32 signup_start_time = 17;
     uint32 signup_end_time = 18;
     uint32 signup_type = 19;
+    uint32 auto_match = 20;
 }
 
 message CustomizedContestPlayerReport {
@@ -1862,6 +2072,7 @@ message RecordGame {
     GameConfig config = 5;
     repeated AccountInfo accounts = 11;
     GameEndResult result = 12;
+    repeated AccountInfo robots = 13;
 
     message AccountInfo {
 
@@ -1877,6 +2088,34 @@ message RecordGame {
         uint32 verified = 10;
         repeated ViewSlot views = 11;
     }
+}
+
+message RecordListEntry {
+
+    uint32 version = 1;
+    string uuid = 2;
+    uint32 start_time = 3;
+    uint32 end_time = 4;
+    uint32 tag = 5;
+    uint32 subtag = 6;
+    repeated RecordPlayerResult players = 7;
+}
+
+message RecordPlayerResult {
+
+    uint32 rank = 1;
+    uint32 account_id = 2;
+    string nickname = 3;
+    AccountLevel level = 4;
+    AccountLevel level3 = 5;
+    int32 pt = 7;
+    int32 point = 8;
+    uint32 max_hu_type = 9;
+    uint32 action_liqi = 10;
+    uint32 action_rong = 11;
+    uint32 action_zimo = 12;
+    uint32 action_chong = 13;
+    uint32 verified = 14;
 }
 
 message CustomizedContestGameStart {
@@ -2004,6 +2243,7 @@ message GameFinalSnapshot {
     repeated PlayerGameView account_views = 12;
     repeated FinalPlayer final_players = 13;
     repeated AFKInfo afk_info = 14;
+    repeated PlayerGameView robot_views = 15;
 
     message CalculateParam {
 
@@ -2261,6 +2501,8 @@ message ActivityBuffData {
 
     uint32 buff_id = 1;
     uint32 level = 5;
+    uint32 count = 6;
+    uint32 update_time = 7;
 }
 
 message AccountResourceSnapshot {
@@ -2438,6 +2680,167 @@ message TransparentData {
     string session = 3;
     NetworkEndpoint remote = 4;
 }
+
+message AmuletTile {
+
+    uint32 id = 1;
+    string tile = 2;
+}
+
+message AmuletFan {
+
+    uint32 id = 1;
+    int32 val = 2;
+    uint32 count = 3;
+    bool yiman = 4;
+}
+
+message AmuletReplace {
+
+    uint32 id = 1;
+    string tile = 2;
+}
+
+message AmuletMingInfo {
+
+    uint32 type = 1;
+    repeated uint32 tile_list = 2;
+}
+
+message AmuletActivityHookEffect {
+
+    repeated uint32 add_dora = 1;
+    repeated string add_tian_dora = 3;
+    repeated uint32 add_effect = 4;
+    repeated uint32 remove_effect = 5;
+    repeated uint32 add_buff = 6;
+    repeated uint32 remove_buff = 7;
+    int32 add_coin = 9;
+    repeated AmuletReplace tile_replace = 11;
+    int64 add_fan = 12;
+    int64 add_base = 13;
+    repeated AmuletFan modify_fan = 14;
+    uint32 id = 15;
+    bool modify_dora = 16;
+    uint32 uid = 17;
+    repeated uint32 add_show_tile = 18;
+    int32 add_dora_count = 19;
+}
+
+message AmuletHuleInfo {
+
+    uint32 tile = 1;
+    repeated AmuletFan fan_list = 2;
+    uint64 fan = 3;
+    string point = 4;
+    uint64 base = 5;
+}
+
+message AmuletHuleOperateResult {
+
+    AmuletHuleInfo hu_final = 2;
+    AmuletHuleInfo hu_base = 3;
+    repeated AmuletActivityHookEffect hook_effect = 5;
+}
+
+message AmuletGangOperateResult {
+
+    repeated uint32 new_dora = 4;
+    repeated AmuletActivityHookEffect hook_effect = 5;
+}
+
+message AmuletDealTileResult {
+
+    uint32 tile = 1;
+    repeated AmuletActivityHookEffect hook_effect = 5;
+}
+
+message AmuletRoundResult {
+
+    AmuletHuleOperateResult hu_result = 2;
+    AmuletDealTileResult deal_result = 4;
+}
+
+message AmuletUpgradeResult {
+
+    repeated AmuletRoundResult remain_rounds = 1;
+    uint32 point_coin = 2;
+    uint32 level_coin = 3;
+    AmuletGameShopData shop = 4;
+    repeated AmuletActivityHookEffect hook_effect = 5;
+}
+
+message QuestionnaireReward {
+
+    uint32 resource_id = 1;
+    uint32 count = 2;
+}
+
+message QuestionnaireDetail {
+
+    uint32 id = 1;
+    uint32 version_id = 2;
+    uint32 effective_time_start = 3;
+    uint32 effective_time_end = 4;
+    repeated QuestionnaireReward rewards = 5;
+    string banner_title = 6;
+    string title = 7;
+    string announcement_title = 8;
+    string announcement_content = 9;
+    string final_text = 10;
+    repeated QuestionnaireQuestion questions = 11;
+}
+
+message QuestionnaireQuestion {
+
+    uint32 id = 1;
+    string title = 2;
+    string describe = 3;
+    string type = 4;
+    string sub_type = 5;
+    repeated QuestionOption options = 6;
+    bool option_random_sort = 7;
+    bool require = 8;
+    uint32 max_choice = 9;
+    repeated NextQuestionData next_question = 10;
+    repeated string matrix_row = 11;
+
+    message QuestionOption {
+
+        string label = 1;
+        string value = 2;
+        bool allow_input = 3;
+    }
+
+    message NextQuestionData {
+
+        uint32 target_question_id = 1;
+        repeated QuestionconditionWrapper conditions = 10;
+
+        message QuestionCondition {
+
+            uint32 question_id = 1;
+            string op = 2;
+            repeated string values = 3;
+        }
+
+        message QuestionconditionWrapper {
+
+            repeated QuestionCondition conditions = 1;
+        }
+    }
+}
+
+message QuestionnaireBrief {
+
+    uint32 id = 1;
+    uint32 version_id = 2;
+    uint32 effective_time_start = 3;
+    uint32 effective_time_end = 4;
+    repeated QuestionnaireReward rewards = 5;
+    string banner_title = 6;
+    string title = 7;
+}
 service Lobby {
     rpc fetchConnectionInfo (ReqCommon) returns (ResConnectionInfo);
     rpc fetchQueueInfo (ReqCommon) returns (ResFetchQueueInfo);
@@ -2447,6 +2850,7 @@ service Lobby {
     rpc login (ReqLogin) returns (ResLogin);
     rpc fetchInfo (ReqCommon) returns (ResFetchInfo);
     rpc loginSuccess (ReqCommon) returns (ResCommon);
+    rpc fetchServerMaintenanceInfo (ReqCommon) returns (ResFetchServerMaintenanceInfo);
     rpc emailLogin (ReqEmailLogin) returns (ResLogin);
     rpc oauth2Auth (ReqOauth2Auth) returns (ResOauth2Auth);
     rpc oauth2Check (ReqOauth2Check) returns (ResOauth2Check);
@@ -2477,8 +2881,9 @@ service Lobby {
     rpc readyPlay (ReqRoomReady) returns (ResCommon);
     rpc dressingStatus (ReqRoomDressing) returns (ResCommon);
     rpc startRoom (ReqRoomStart) returns (ResCommon);
-    rpc kickPlayer (ReqRoomKick) returns (ResCommon);
+    rpc roomKickPlayer (ReqRoomKickPlayer) returns (ResCommon);
     rpc modifyRoom (ReqModifyRoom) returns (ResCommon);
+    rpc addRoomRobot (ReqAddRoomRobot) returns (ResCommon);
     rpc matchGame (ReqJoinMatchQueue) returns (ResCommon);
     rpc cancelMatch (ReqCancelMatchQueue) returns (ResCommon);
     rpc fetchAccountInfo (ReqAccountInfo) returns (ResAccountInfo);
@@ -2491,8 +2896,11 @@ service Lobby {
     rpc fetchGameRecord (ReqGameRecord) returns (ResGameRecord);
     rpc readGameRecord (ReqGameRecord) returns (ResCommon);
     rpc fetchGameRecordList (ReqGameRecordList) returns (ResGameRecordList);
+    rpc fetchGameRecordListV2 (ReqGameRecordListV2) returns (ResGameRecordListV2);
+    rpc fetchNextGameRecordList (ReqNextGameRecordList) returns (ResNextGameRecordList);
     rpc fetchCollectedGameRecordList (ReqCommon) returns (ResCollectedGameRecordList);
     rpc fetchGameRecordsDetail (ReqGameRecordsDetail) returns (ResGameRecordsDetail);
+    rpc fetchGameRecordsDetailV2 (ReqGameRecordsDetailV2) returns (ResGameRecordsDetailV2);
     rpc addCollectedGameRecord (ReqAddCollectedGameRecord) returns (ResAddCollectedGameRecord);
     rpc removeCollectedGameRecord (ReqRemoveCollectedGameRecord) returns (ResRemoveCollectedGameRecord);
     rpc changeCollectedGameRecordRemarks (ReqChangeCollectedGameRecordRemarks) returns (ResChangeCollectedGameRecordRemarks);
@@ -2551,9 +2959,12 @@ service Lobby {
     rpc leaveComment (ReqLeaveComment) returns (ResCommon);
     rpc deleteComment (ReqDeleteComment) returns (ResCommon);
     rpc updateReadComment (ReqUpdateReadComment) returns (ResCommon);
-    rpc fetchRollingNotice (ReqCommon) returns (ReqRollingNotice);
+    rpc fetchRollingNotice (ReqFetchRollingNotice) returns (ResFetchRollingNotice);
+    rpc fetchMaintainNotice (ReqCommon) returns (ResFetchMaintainNotice);
     rpc fetchServerTime (ReqCommon) returns (ResServerTime);
     rpc fetchPlatformProducts (ReqPlatformBillingProducts) returns (ResPlatformBillingProducts);
+    rpc fetchRandomCharacter (ReqCommon) returns (ResRandomCharacter);
+    rpc setRandomCharacter (ReqRandomCharacter) returns (ResCommon);
     rpc cancelGooglePlayOrder (ReqCancelGooglePlayOrder) returns (ResCommon);
     rpc openChest (ReqOpenChest) returns (ResOpenChest);
     rpc buyFromChestShop (ReqBuyFromChestShop) returns (ResBuyFromChestShop);
@@ -2759,6 +3170,36 @@ service Lobby {
     rpc fetchManagerCustomizedContestList (ReqFetchmanagerCustomizedContestList) returns (ResFetchManagerCustomizedContestList);
     rpc fetchManagerCustomizedContest (ReqFetchManagerCustomizedContest) returns (ResFetchManagerCustomizedContest);
     rpc updateManagerCustomizedContest (ReqUpdateManagerCustomizedContest) returns (ResCommon);
+    rpc fetchContestPlayerRank (ReqFetchContestPlayerRank) returns (ResFetchContestPlayerRank);
+    rpc fetchReadyPlayerList (ReqFetchReadyPlayerList) returns (ResFetchReadyPlayerList);
+    rpc createGamePlan (ReqCreateGamePlan) returns (ResCommon);
+    rpc generateContestManagerLoginCode (ReqCommon) returns (ResGenerateContestManagerLoginCode);
+    rpc amuletActivityStartGame (ReqAmuletActivityStartGame) returns (ResAmuletActivityStartGame);
+    rpc amuletActivityOperate (ReqAmuletActivityOperate) returns (ResAmuletActivityOperate);
+    rpc amuletActivityChangeHands (ReqAmuletActivityChangeHands) returns (ResAmuletActivityChangeHands);
+    rpc amuletActivityUpgrade (ReqAmuletActivityUpgrade) returns (ResAmuletActivityUpgrade);
+    rpc amuletActivityBuy (ReqAmuletActivityBuy) returns (ResAmuletActivityBuy);
+    rpc amuletActivitySelectPack (ReqAmuletActivitySelectPack) returns (ResAmuletActivitySelectPack);
+    rpc amuletActivitySellEffect (ReqAmuletActivitySellEffect) returns (ResAmuletActivitySellEffect);
+    rpc amuletActivityEffectSort (ReqAmuletActivityEffectSort) returns (ResCommon);
+    rpc amuletActivityGiveup (ReqAmuletActivityGiveup) returns (ResCommon);
+    rpc amuletActivityRefreshShop (ReqAmuletActivityRefreshShop) returns (ResAmuletActivityRefreshShop);
+    rpc amuletActivitySelectFreeEffect (ReqAmuletActivitySelectFreeEffect) returns (ResAmuletActivitySelectFreeEffect);
+    rpc amuletActivityUpgradeShopBuff (ReqAmuletActivityUpgradeShopBuff) returns (ResAmuletActivityUpgradeShopBuff);
+    rpc amuletActivityEndShopping (ReqAmuletActivityEndShopping) returns (ResAmuletActivityEndShopping);
+    rpc amuletActivitySetSkillLevel (ReqAmuletActivitySetSkillLevel) returns (ResCommon);
+    rpc amuletActivityMaintainInfo (ReqCommon) returns (ResAmuletActivityMaintainInfo);
+    rpc storyActivityUnlock (ReqStoryActivityUnlock) returns (ResCommon);
+    rpc storyActivityUnlockEnding (ReqStoryActivityUnlockEnding) returns (ResCommon);
+    rpc storyActivityReceiveEndingReward (ReqStoryActivityReceiveEndingReward) returns (ResStoryReward);
+    rpc storyActivityReceiveFinishReward (ReqStoryActivityReceiveFinishReward) returns (ResStoryReward);
+    rpc storyActivityReceiveAllFinishReward (ReqStoryActivityReceiveAllFinishReward) returns (ResStoryReward);
+    rpc storyActivityUnlockEndingAndReceive (ReqStoryActivityUnlockEndingAndReceive) returns (ResStoryActivityUnlockEndingAndReceive);
+    rpc fetchActivityRank (ReqFetchActivityRank) returns (ResFetchActivityRank);
+    rpc setVerifiedHidden (ReqSetVerifiedHidden) returns (ResCommon);
+    rpc fetchQuestionnaireList (ReqFetchQuestionnaireList) returns (ResFetchQuestionnaireList);
+    rpc fetchQuestionnaireDetail (ReqFetchQuestionnaireDetail) returns (ResFetchQuestionnaireDetail);
+    rpc submitQuestionnaire (ReqSubmitQuestionnaire) returns (ResCommon);
 }
 
 message ResConnectionInfo {
@@ -3089,14 +3530,19 @@ message ReqRoomDressing {
 message ReqRoomStart {
 }
 
-message ReqRoomKick {
+message ReqRoomKickPlayer {
 
-    uint32 account_id = 1;
+    uint32 id = 1;
 }
 
 message ReqModifyRoom {
 
     uint32 robot_count = 1;
+}
+
+message ReqAddRoomRobot {
+
+    uint32 position = 1;
 }
 
 message ReqChangeAvatar {
@@ -3175,6 +3621,41 @@ message ResGameRecordList {
     repeated RecordGame record_list = 3;
 }
 
+message ReqGameRecordListV2 {
+
+    uint32 tag = 1;
+    uint32 begin_time = 2;
+    uint32 end_time = 3;
+    repeated uint32 ranks = 4;
+    repeated uint32 modes = 5;
+    uint32 max_hu_type = 6;
+    repeated uint32 level_mode = 7;
+}
+
+message ResGameRecordListV2 {
+
+    Error error = 1;
+    string iterator = 2;
+    uint32 iterator_expire = 3;
+    uint32 actual_begin_time = 4;
+    uint32 actual_end_time = 5;
+}
+
+message ReqNextGameRecordList {
+
+    string iterator = 1;
+    uint32 count = 2;
+}
+
+message ResNextGameRecordList {
+
+    Error error = 1;
+    bool next = 2;
+    repeated RecordListEntry entries = 3;
+    uint32 iterator_expire = 4;
+    uint32 next_end_time = 5;
+}
+
 message ResCollectedGameRecordList {
 
     Error error = 1;
@@ -3191,6 +3672,17 @@ message ResGameRecordsDetail {
 
     Error error = 1;
     repeated RecordGame record_list = 2;
+}
+
+message ReqGameRecordsDetailV2 {
+
+    repeated string uuid_list = 1;
+}
+
+message ResGameRecordsDetailV2 {
+
+    Error error = 1;
+    repeated RecordListEntry entries = 2;
 }
 
 message ReqAddCollectedGameRecord {
@@ -3548,6 +4040,18 @@ message ReqUserComplain {
 
     uint32 target_id = 1;
     uint32 type = 2;
+    string content = 3;
+    string game_uuid = 4;
+    GameRoundInfo round_info = 5;
+
+    message GameRoundInfo {
+
+        uint32 chang = 1;
+        uint32 ju = 2;
+        uint32 ben = 3;
+        uint32 seat = 4;
+        uint32 xun = 5;
+    }
 }
 
 message ReqReadAnnouncement {
@@ -3700,9 +4204,21 @@ message ReqUpdateReadComment {
     uint32 read_id = 1;
 }
 
-message ReqRollingNotice {
+message ResFetchRollingNotice {
 
-    repeated RollingNotice notice = 1;
+    Error error = 2;
+    RollingNotice notice = 3;
+}
+
+message ResFetchMaintainNotice {
+
+    Error error = 1;
+    MaintainNotice notice = 2;
+}
+
+message ReqFetchRollingNotice {
+
+    string lang = 1;
 }
 
 message ResServerTime {
@@ -4225,6 +4741,19 @@ message ResCreateSteamOrder {
     string platform_order_id = 3;
 }
 
+message ResRandomCharacter {
+
+    Error error = 1;
+    bool enabled = 2;
+    repeated RandomCharacter pool = 3;
+}
+
+message ReqRandomCharacter {
+
+    bool enabled = 1;
+    repeated RandomCharacter pool = 2;
+}
+
 message ReqVerifySteamOrder {
 
     string order_id = 1;
@@ -4604,6 +5133,8 @@ message ResMisc {
     Error error = 1;
     repeated uint32 recharged_list = 2;
     repeated MiscFaithData faiths = 3;
+    uint32 verified_hidden = 4;
+    uint32 verified_value = 5;
 
     message MiscFaithData {
 
@@ -4695,6 +5226,7 @@ message ResEnterCustomizedContest {
     CustomizedContestPlayerReport player_report = 3;
     bool is_followed = 4;
     uint32 state = 5;
+    bool is_admin = 6;
 }
 
 message ReqFetchCustomizedContestOnlineInfo {
@@ -4825,6 +5357,8 @@ message ResAccountActivityData {
     repeated lq.ActivityVillageData village_data = 25;
     repeated lq.ActivityFestivalData festival_data = 26;
     repeated lq.ActivityIslandData island_data = 27;
+    repeated lq.ActivityAmuletData amulet_data = 28;
+    repeated lq.ActivityStoryData story_data = 29;
 
     message ActivitySignInData {
 
@@ -5829,11 +6363,24 @@ message ResFetchInfo {
     ResModNicknameTime mod_nickname_time = 22;
     ResMisc misc = 23;
     ResAnnouncement announcement = 24;
-    ReqRollingNotice rolling_notice = 25;
     ResActivityList activity_list = 26;
     ResCharacterInfo character_info = 27;
     ResAllcommonViews all_common_views = 28;
     ResCollectedGameRecordList collected_game_record_list = 29;
+    ResFetchMaintainNotice maintain_notice = 30;
+    ResRandomCharacter random_character = 31;
+    ResFetchServerMaintenanceInfo maintenance_info = 32;
+}
+
+message ResFetchServerMaintenanceInfo {
+
+    repeated ServerFunctionMaintenanceInfo function_maintenance = 1;
+
+    message ServerFunctionMaintenanceInfo {
+
+        string name = 1;
+        bool open = 2;
+    }
 }
 
 message ReqUpgradeVillageBuilding {
@@ -6033,6 +6580,19 @@ message ReqIslandActivityUnlockBagGrid {
     repeated uint32 pos = 3;
 }
 
+message ContestSetting {
+
+    repeated LevelLimit level_limit = 1;
+    uint32 game_limit = 2;
+    uint32 system_broadcast = 3;
+
+    message LevelLimit {
+
+        uint32 type = 1;
+        uint32 value = 2;
+    }
+}
+
 message ReqCreateCustomizedContest {
 
     string name = 1;
@@ -6040,6 +6600,9 @@ message ReqCreateCustomizedContest {
     GameMode game_rule_setting = 3;
     uint32 start_time = 4;
     uint32 end_time = 5;
+    uint32 auto_match = 6;
+    uint32 rank_rule = 7;
+    ContestSetting contest_setting = 8;
 }
 
 message ResCreateCustomizedContest {
@@ -6076,6 +6639,7 @@ message ResFetchManagerCustomizedContest {
     uint32 rank_rule = 8;
     uint32 check_state = 9;
     string checking_name = 10;
+    ContestSetting contest_setting = 11;
 }
 
 message ReqUpdateManagerCustomizedContest {
@@ -6088,6 +6652,656 @@ message ReqUpdateManagerCustomizedContest {
     uint32 unique_id = 6;
     uint32 auto_match = 7;
     uint32 rank_rule = 8;
+    ContestSetting contest_setting = 9;
+}
+
+message ReqFetchContestPlayerRank {
+
+    uint32 unique_id = 1;
+    uint32 limit = 2;
+    uint32 offset = 3;
+}
+
+message ResFetchContestPlayerRank {
+
+    Error error = 1;
+    uint32 total = 2;
+    repeated SeasonRank rank = 3;
+    PlayerData player_data = 4;
+
+    message ContestPlayerAccountData {
+
+        uint32 total_game_count = 1;
+        repeated ContestGameResult recent_games = 2;
+        repeated ContestSeriesGameResult highest_series_points = 3;
+
+        message ContestGameResult {
+
+            uint32 rank = 1;
+            int32 total_point = 2;
+        }
+
+        message ContestSeriesGameResult {
+
+            uint32 key = 1;
+            repeated ContestGameResult results = 2;
+        }
+    }
+
+    message SeasonRank {
+
+        uint32 account_id = 1;
+        string nickname = 2;
+        ContestPlayerAccountData data = 3;
+    }
+
+    message PlayerData {
+
+        uint32 rank = 1;
+        ContestPlayerAccountData data = 2;
+    }
+}
+
+message ReqFetchReadyPlayerList {
+
+    uint32 unique_id = 1;
+}
+
+message ResFetchReadyPlayerList {
+
+    Error error = 1;
+    repeated Player list = 2;
+
+    message Player {
+
+        uint32 account_id = 1;
+        string nickname = 2;
+    }
+}
+
+message ReqCreateGamePlan {
+
+    uint32 unique_id = 1;
+    repeated uint32 account_list = 2;
+    uint32 game_start_time = 3;
+    uint32 shuffle_seats = 4;
+    uint32 ai_level = 5;
+}
+
+message ResGenerateContestManagerLoginCode {
+
+    Error error = 1;
+    string code = 2;
+}
+
+message ReqAmuletActivityStartGame {
+
+    uint32 activity_id = 1;
+}
+
+message ResAmuletActivityStartGame {
+
+    Error error = 1;
+    AmuletGameData game = 2;
+}
+
+message ReqAmuletActivityOperate {
+
+    uint32 activity_id = 1;
+    uint32 type = 2;
+    repeated uint32 tile = 3;
+}
+
+message ResAmuletActivityOperate {
+
+    Error error = 1;
+    AmuletHuleOperateResult hu_result = 2;
+    AmuletGangOperateResult gang_result = 3;
+    AmuletDealTileResult deal_result = 4;
+    AmuletUpgradeResult upgrade_result = 5;
+    bool upgraded = 6;
+    bool failed = 7;
+    AmuletGameUpdateData game_update = 8;
+}
+
+message ReqAmuletActivityChangeHands {
+
+    uint32 activity_id = 1;
+    repeated uint32 hands = 2;
+}
+
+message ResAmuletActivityChangeHands {
+
+    Error error = 1;
+    repeated uint32 hands = 2;
+    uint32 remain_change_tile_count = 3;
+    repeated AmuletActivityTingInfo ting_list = 4;
+    repeated AmuletEffectData effect_list = 5;
+}
+
+message ReqAmuletActivityUpgrade {
+
+    uint32 activity_id = 1;
+}
+
+message ResAmuletActivityUpgrade {
+
+    Error error = 1;
+    AmuletGameData game = 2;
+    repeated AmuletActivityHookEffect hook_effect = 3;
+}
+
+message ReqAmuletActivitySelectPack {
+
+    uint32 activity_id = 1;
+    uint32 id = 2;
+}
+
+message ResAmuletActivitySelectPack {
+
+    Error error = 1;
+    repeated AmuletEffectData effect_list = 2;
+    AmuletGameShopData shop = 3;
+}
+
+message ReqAmuletActivityBuy {
+
+    uint32 activity_id = 1;
+    uint32 id = 3;
+}
+
+message ResAmuletActivityBuy {
+
+    Error error = 1;
+    uint32 coin = 2;
+    AmuletGameShopData shop = 3;
+    uint32 stage = 4;
+    repeated AmuletEffectData effect_list = 5;
+    uint32 total_consumed_coin = 6;
+}
+
+message ReqAmuletActivitySellEffect {
+
+    uint32 activity_id = 1;
+    uint32 id = 2;
+}
+
+message ResAmuletActivitySellEffect {
+
+    Error error = 1;
+    uint32 coin = 2;
+    repeated AmuletEffectData effect_list = 3;
+    AmuletGameUpdateData game_update = 4;
+    uint32 remain_change_tile_count = 5;
+}
+
+message ReqAmuletActivityEffectSort {
+
+    uint32 activity_id = 1;
+    repeated uint32 sorted_id = 2;
+}
+
+message ReqAmuletActivityGiveup {
+
+    uint32 activity_id = 1;
+}
+
+message ReqAmuletActivityRefreshShop {
+
+    uint32 activity_id = 1;
+}
+
+message ResAmuletActivityRefreshShop {
+
+    Error error = 1;
+    AmuletGameShopData shop = 2;
+    uint32 coin = 3;
+    repeated AmuletEffectData effect_list = 4;
+}
+
+message ReqAmuletActivitySelectFreeEffect {
+
+    uint32 activity_id = 1;
+    uint32 selected_id = 2;
+}
+
+message ResAmuletActivitySelectFreeEffect {
+
+    Error error = 1;
+    AmuletGameUpdateData game_update = 3;
+    uint32 remain_change_tile_count = 4;
+}
+
+message ReqAmuletActivityUpgradeShopBuff {
+
+    uint32 activity_id = 1;
+    uint32 id = 2;
+}
+
+message ResAmuletActivityUpgradeShopBuff {
+
+    Error error = 1;
+    AmuletGameUpdateData game_update = 3;
+    repeated AmuletEffectData shop_buff_list = 4;
+    uint32 total_consumed_coin = 5;
+}
+
+message ReqAmuletActivityEndShopping {
+
+    uint32 activity_id = 1;
+}
+
+message ResAmuletActivityEndShopping {
+
+    Error error = 1;
+    AmuletGameUpdateData game_update = 3;
+}
+
+message ReqAmuletActivitySetSkillLevel {
+
+    uint32 activity_id = 1;
+    repeated AmuletSkillData skill = 2;
+}
+
+message ResAmuletActivityMaintainInfo {
+
+    Error error = 1;
+    string mode = 2;
+}
+
+message ReqStoryActivityUnlock {
+
+    uint32 activity_id = 1;
+    uint32 story_id = 2;
+}
+
+message ReqStoryActivityUnlockEnding {
+
+    uint32 activity_id = 1;
+    uint32 story_id = 2;
+    uint32 ending_id = 3;
+}
+
+message ReqStoryActivityReceiveEndingReward {
+
+    uint32 activity_id = 1;
+    uint32 story_id = 2;
+    uint32 ending_id = 3;
+}
+
+message ResStoryReward {
+
+    Error error = 1;
+    repeated ExecuteReward reward_items = 2;
+}
+
+message ReqStoryActivityReceiveFinishReward {
+
+    uint32 activity_id = 1;
+    uint32 story_id = 2;
+}
+
+message ReqStoryActivityReceiveAllFinishReward {
+
+    uint32 activity_id = 1;
+    uint32 story_id = 2;
+}
+
+message ReqStoryActivityUnlockEndingAndReceive {
+
+    uint32 activity_id = 1;
+    uint32 story_id = 2;
+    uint32 ending_id = 3;
+}
+
+message ResStoryActivityUnlockEndingAndReceive {
+
+    Error error = 1;
+    repeated ExecuteReward ending_reward = 2;
+    repeated ExecuteReward finish_reward = 3;
+    repeated ExecuteReward all_finish_reward = 4;
+}
+
+message ReqFetchActivityRank {
+
+    uint32 activity_id = 1;
+    repeated uint32 account_list = 2;
+}
+
+message ResFetchActivityRank {
+
+    Error error = 1;
+    repeated ActivityRankItem items = 4;
+    ActivityRankItem self = 5;
+
+    message ActivityRankItem {
+
+        uint32 account_id = 1;
+        uint64 score = 2;
+        string data = 3;
+        uint32 rank = 4;
+    }
+}
+
+message ReqFetchQuestionnaireList {
+
+    string lang = 1;
+}
+
+message ResFetchQuestionnaireList {
+
+    Error error = 1;
+    repeated QuestionnaireBrief list = 2;
+    repeated uint32 finished_list = 3;
+}
+
+message ReqFetchQuestionnaireDetail {
+
+    uint32 id = 1;
+    string lang = 2;
+}
+
+message ResFetchQuestionnaireDetail {
+
+    Error error = 1;
+    QuestionnaireDetail detail = 2;
+}
+
+message ReqSetVerifiedHidden {
+
+    uint32 verified_hidden = 1;
+}
+
+message ReqSubmitQuestionnaire {
+
+    uint32 questionnaire_id = 1;
+    uint32 questionnaire_version_id = 2;
+    repeated QuestionnaireAnswer answers = 3;
+    uint32 open_time = 4;
+    uint32 finish_time = 5;
+    string client = 6;
+
+    message QuestionnaireAnswer {
+
+        uint32 question_id = 1;
+        repeated QuestionnaireAnswerValue values = 2;
+
+        message QuestionnaireAnswerValue {
+
+            string value = 1;
+            string custom_input = 2;
+        }
+    }
+}
+service FastTest {
+    rpc authGame (ReqAuthGame) returns (ResAuthGame);
+    rpc enterGame (ReqCommon) returns (ResEnterGame);
+    rpc syncGame (ReqSyncGame) returns (ResSyncGame);
+    rpc finishSyncGame (ReqCommon) returns (ResCommon);
+    rpc terminateGame (ReqCommon) returns (ResCommon);
+    rpc inputOperation (ReqSelfOperation) returns (ResCommon);
+    rpc inputChiPengGang (ReqChiPengGang) returns (ResCommon);
+    rpc confirmNewRound (ReqCommon) returns (ResCommon);
+    rpc broadcastInGame (ReqBroadcastInGame) returns (ResCommon);
+    rpc inputGameGMCommand (ReqGMCommandInGaming) returns (ResCommon);
+    rpc fetchGamePlayerState (ReqCommon) returns (ResGamePlayerState);
+    rpc checkNetworkDelay (ReqCommon) returns (ResCommon);
+    rpc clearLeaving (ReqCommon) returns (ResCommon);
+    rpc voteGameEnd (ReqVoteGameEnd) returns (ResGameEndVote);
+    rpc authObserve (ReqAuthObserve) returns (ResCommon);
+    rpc startObserve (ReqCommon) returns (ResStartObserve);
+    rpc stopObserve (ReqCommon) returns (ResCommon);
+}
+
+message ReqAuthGame {
+
+    uint32 account_id = 1;
+    string token = 2;
+    string game_uuid = 3;
+    string session = 4;
+    string gift = 5;
+    uint32 vs = 6;
+}
+
+message ResAuthGame {
+
+    Error error = 1;
+    repeated PlayerGameView players = 2;
+    repeated uint32 seat_list = 3;
+    bool is_game_start = 4;
+    GameConfig game_config = 5;
+    repeated uint32 ready_id_list = 6;
+    repeated PlayerGameView robots = 7;
+}
+
+message GameRestore {
+
+    GameSnapshot snapshot = 1;
+    repeated ActionPrototype actions = 2;
+    uint32 passed_waiting_time = 3;
+    uint32 game_state = 4;
+    uint32 start_time = 5;
+    uint32 last_pause_time_ms = 6;
+}
+
+message ResEnterGame {
+
+    Error error = 1;
+    bool is_end = 2;
+    uint32 step = 3;
+    GameRestore game_restore = 4;
+}
+
+message ReqSyncGame {
+
+    string round_id = 1;
+    uint32 step = 2;
+}
+
+message ResSyncGame {
+
+    Error error = 1;
+    bool is_end = 2;
+    uint32 step = 3;
+    GameRestore game_restore = 4;
+}
+
+message ReqSelfOperation {
+
+    uint32 type = 1;
+    uint32 index = 2;
+    string tile = 3;
+    bool cancel_operation = 4;
+    bool moqie = 5;
+    uint32 timeuse = 6;
+    int32 tile_state = 7;
+    repeated string change_tiles = 8;
+    repeated int32 tile_states = 9;
+    uint32 gap_type = 10;
+}
+
+message ReqChiPengGang {
+
+    uint32 type = 1;
+    uint32 index = 2;
+    bool cancel_operation = 3;
+    uint32 timeuse = 6;
+}
+
+message ReqBroadcastInGame {
+
+    string content = 1;
+    bool except_self = 2;
+}
+
+message ReqGMCommandInGaming {
+
+    string json_data = 1;
+}
+
+message ResGamePlayerState {
+
+    Error error = 1;
+    repeated GamePlayerState state_list = 2;
+}
+
+message ReqVoteGameEnd {
+
+    bool yes = 1;
+}
+
+message ResGameEndVote {
+
+    bool success = 1;
+    uint32 vote_cd_end_time = 2;
+    Error error = 3;
+}
+
+message ReqAuthObserve {
+
+    string token = 1;
+}
+
+message ResStartObserve {
+
+    GameLiveHead head = 1;
+    GameLiveSegment passed = 2;
+}
+
+message NotifyNewGame {
+
+    string game_uuid = 1;
+    repeated string player_list = 2;
+}
+
+message NotifyPlayerLoadGameReady {
+
+    repeated uint32 ready_id_list = 1;
+}
+
+message NotifyGameBroadcast {
+
+    uint32 seat = 1;
+    string content = 2;
+}
+
+message NotifyGameEndResult {
+
+    GameEndResult result = 1;
+}
+
+message NotifyGameTerminate {
+
+    string reason = 1;
+}
+
+message NotifyPlayerConnectionState {
+
+    uint32 seat = 1;
+    GamePlayerState state = 2;
+}
+
+message NotifyAccountLevelChange {
+
+    AccountLevel origin = 1;
+    AccountLevel final = 2;
+    uint32 type = 3;
+}
+
+message NotifyGameFinishReward {
+
+    uint32 mode_id = 1;
+    LevelChange level_change = 2;
+    MatchChest match_chest = 3;
+    MainCharacter main_character = 4;
+    CharacterGift character_gift = 5;
+
+    message LevelChange {
+
+        AccountLevel origin = 1;
+        AccountLevel final = 2;
+        uint32 type = 3;
+    }
+
+    message MatchChest {
+
+        uint32 chest_id = 1;
+        uint32 origin = 2;
+        uint32 final = 3;
+        bool is_graded = 4;
+        repeated RewardSlot rewards = 5;
+    }
+
+    message MainCharacter {
+
+        uint32 level = 1;
+        uint32 exp = 2;
+        uint32 add = 3;
+    }
+
+    message CharacterGift {
+
+        uint32 origin = 1;
+        uint32 final = 2;
+        uint32 add = 3;
+        bool is_graded = 4;
+    }
+}
+
+message NotifyActivityReward {
+
+    repeated ActivityReward activity_reward = 1;
+
+    message ActivityReward {
+
+        uint32 activity_id = 1;
+        repeated RewardSlot rewards = 2;
+    }
+}
+
+message NotifyActivityPoint {
+
+    repeated ActivityPoint activity_points = 1;
+
+    message ActivityPoint {
+
+        uint32 activity_id = 1;
+        uint32 point = 2;
+    }
+}
+
+message NotifyLeaderboardPoint {
+
+    repeated LeaderboardPoint leaderboard_points = 1;
+
+    message LeaderboardPoint {
+
+        uint32 leaderboard_id = 1;
+        uint32 point = 2;
+    }
+}
+
+message NotifyGamePause {
+
+    bool paused = 1;
+}
+
+message NotifyEndGameVote {
+
+    repeated VoteResult results = 1;
+    uint32 start_time = 2;
+    uint32 duration_time = 3;
+
+    message VoteResult {
+
+        uint32 account_id = 1;
+        bool yes = 2;
+    }
+}
+
+message NotifyObserveData {
+
+    GameLiveUnit unit = 1;
 }
 
 message ActionMJStart {
@@ -6352,6 +7566,8 @@ message HuleInfo {
     repeated uint32 baopai_seats = 22;
     repeated string lines = 23;
     uint32 tianming_bonus = 24;
+    repeated string baida_changed = 25;
+    string hu_tile_bai_da_changed = 26;
 }
 
 message TingPaiInfo {
@@ -6858,273 +8074,4 @@ message RecordNoTile {
 message PlayerLeaving {
 
     uint32 seat = 1;
-}
-service FastTest {
-    rpc authGame (ReqAuthGame) returns (ResAuthGame);
-    rpc enterGame (ReqCommon) returns (ResEnterGame);
-    rpc syncGame (ReqSyncGame) returns (ResSyncGame);
-    rpc finishSyncGame (ReqCommon) returns (ResCommon);
-    rpc terminateGame (ReqCommon) returns (ResCommon);
-    rpc inputOperation (ReqSelfOperation) returns (ResCommon);
-    rpc inputChiPengGang (ReqChiPengGang) returns (ResCommon);
-    rpc confirmNewRound (ReqCommon) returns (ResCommon);
-    rpc broadcastInGame (ReqBroadcastInGame) returns (ResCommon);
-    rpc inputGameGMCommand (ReqGMCommandInGaming) returns (ResCommon);
-    rpc fetchGamePlayerState (ReqCommon) returns (ResGamePlayerState);
-    rpc checkNetworkDelay (ReqCommon) returns (ResCommon);
-    rpc clearLeaving (ReqCommon) returns (ResCommon);
-    rpc voteGameEnd (ReqVoteGameEnd) returns (ResGameEndVote);
-    rpc authObserve (ReqAuthObserve) returns (ResCommon);
-    rpc startObserve (ReqCommon) returns (ResStartObserve);
-    rpc stopObserve (ReqCommon) returns (ResCommon);
-}
-
-message ReqAuthGame {
-
-    uint32 account_id = 1;
-    string token = 2;
-    string game_uuid = 3;
-    string session = 4;
-    string gift = 5;
-    uint32 vs = 6;
-}
-
-message ResAuthGame {
-
-    Error error = 1;
-    repeated PlayerGameView players = 2;
-    repeated uint32 seat_list = 3;
-    bool is_game_start = 4;
-    GameConfig game_config = 5;
-    repeated uint32 ready_id_list = 6;
-}
-
-message GameRestore {
-
-    GameSnapshot snapshot = 1;
-    repeated ActionPrototype actions = 2;
-    uint32 passed_waiting_time = 3;
-    uint32 game_state = 4;
-    uint32 start_time = 5;
-    uint32 last_pause_time_ms = 6;
-}
-
-message ResEnterGame {
-
-    Error error = 1;
-    bool is_end = 2;
-    uint32 step = 3;
-    GameRestore game_restore = 4;
-}
-
-message ReqSyncGame {
-
-    string round_id = 1;
-    uint32 step = 2;
-}
-
-message ResSyncGame {
-
-    Error error = 1;
-    bool is_end = 2;
-    uint32 step = 3;
-    GameRestore game_restore = 4;
-}
-
-message ReqSelfOperation {
-
-    uint32 type = 1;
-    uint32 index = 2;
-    string tile = 3;
-    bool cancel_operation = 4;
-    bool moqie = 5;
-    uint32 timeuse = 6;
-    int32 tile_state = 7;
-    repeated string change_tiles = 8;
-    repeated int32 tile_states = 9;
-    uint32 gap_type = 10;
-}
-
-message ReqChiPengGang {
-
-    uint32 type = 1;
-    uint32 index = 2;
-    bool cancel_operation = 3;
-    uint32 timeuse = 6;
-}
-
-message ReqBroadcastInGame {
-
-    string content = 1;
-    bool except_self = 2;
-}
-
-message ReqGMCommandInGaming {
-
-    string json_data = 1;
-}
-
-message ResGamePlayerState {
-
-    Error error = 1;
-    repeated GamePlayerState state_list = 2;
-}
-
-message ReqVoteGameEnd {
-
-    bool yes = 1;
-}
-
-message ResGameEndVote {
-
-    bool success = 1;
-    uint32 vote_cd_end_time = 2;
-    Error error = 3;
-}
-
-message ReqAuthObserve {
-
-    string token = 1;
-}
-
-message ResStartObserve {
-
-    GameLiveHead head = 1;
-    GameLiveSegment passed = 2;
-}
-
-message NotifyNewGame {
-
-    string game_uuid = 1;
-    repeated string player_list = 2;
-}
-
-message NotifyPlayerLoadGameReady {
-
-    repeated uint32 ready_id_list = 1;
-}
-
-message NotifyGameBroadcast {
-
-    uint32 seat = 1;
-    string content = 2;
-}
-
-message NotifyGameEndResult {
-
-    GameEndResult result = 1;
-}
-
-message NotifyGameTerminate {
-
-    string reason = 1;
-}
-
-message NotifyPlayerConnectionState {
-
-    uint32 seat = 1;
-    GamePlayerState state = 2;
-}
-
-message NotifyAccountLevelChange {
-
-    AccountLevel origin = 1;
-    AccountLevel final = 2;
-    uint32 type = 3;
-}
-
-message NotifyGameFinishReward {
-
-    uint32 mode_id = 1;
-    LevelChange level_change = 2;
-    MatchChest match_chest = 3;
-    MainCharacter main_character = 4;
-    CharacterGift character_gift = 5;
-
-    message LevelChange {
-
-        AccountLevel origin = 1;
-        AccountLevel final = 2;
-        uint32 type = 3;
-    }
-
-    message MatchChest {
-
-        uint32 chest_id = 1;
-        uint32 origin = 2;
-        uint32 final = 3;
-        bool is_graded = 4;
-        repeated RewardSlot rewards = 5;
-    }
-
-    message MainCharacter {
-
-        uint32 level = 1;
-        uint32 exp = 2;
-        uint32 add = 3;
-    }
-
-    message CharacterGift {
-
-        uint32 origin = 1;
-        uint32 final = 2;
-        uint32 add = 3;
-        bool is_graded = 4;
-    }
-}
-
-message NotifyActivityReward {
-
-    repeated ActivityReward activity_reward = 1;
-
-    message ActivityReward {
-
-        uint32 activity_id = 1;
-        repeated RewardSlot rewards = 2;
-    }
-}
-
-message NotifyActivityPoint {
-
-    repeated ActivityPoint activity_points = 1;
-
-    message ActivityPoint {
-
-        uint32 activity_id = 1;
-        uint32 point = 2;
-    }
-}
-
-message NotifyLeaderboardPoint {
-
-    repeated LeaderboardPoint leaderboard_points = 1;
-
-    message LeaderboardPoint {
-
-        uint32 leaderboard_id = 1;
-        uint32 point = 2;
-    }
-}
-
-message NotifyGamePause {
-
-    bool paused = 1;
-}
-
-message NotifyEndGameVote {
-
-    repeated VoteResult results = 1;
-    uint32 start_time = 2;
-    uint32 duration_time = 3;
-
-    message VoteResult {
-
-        uint32 account_id = 1;
-        bool yes = 2;
-    }
-}
-
-message NotifyObserveData {
-
-    GameLiveUnit unit = 1;
 }
