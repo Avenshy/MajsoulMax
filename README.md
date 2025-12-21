@@ -85,6 +85,44 @@
        - `Applications`: 根据你运行游戏的应用填写，例如Steam客户端填写`jantama_mahjongsoul.exe`
        - `Action`: `Proxy HTTPS 127.0.0.1`
        - `OK`
+   - 如果你正在使用 `Clash Verge` 进行代理，更推荐通过其分流规则进行流量转发，而无需区分网页版或客户端版本：
+     - 进入 `Clash Verge` 的“订阅”页面，右键 `全局扩展脚本` ，选择 `编辑文件`
+     - 将以下内容复制进代码框中：
+     - ```js
+       // Define main function (script entry)
+      
+       function main(config, profileName) {
+           config["proxies"].push({
+               "name": "MajsoulMax",
+                "type": "http",
+               "server": "127.0.0.1",
+               "port": 23410
+           });
+       
+           config["proxy-groups"].push({
+               "name": "雀魂 MahjongSoul",
+               "type": "select",
+               "proxies": ["DIRECT", "MajsoulMax"],
+               "icon": "https://www.maj-soul.com/homepage/img/logotaiwan.png"
+           });
+       
+           config["rules"].unshift(
+               "PROCESS-NAME,MajsoulMax.exe,DIRECT",
+               "AND,((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,python.exe)),DIRECT",
+               "PROCESS-NAME,Jantama_MahjongSoul.exe,MajsoulMax",
+               "AND,((DOMAIN-SUFFIX,maj-soul.com),(PROCESS-NAME,python.exe)),DIRECT",
+               "DOMAIN-SUFFIX,maj-soul.com,MajsoulMax",
+               "AND,((DOMAIN-SUFFIX,mahjongsoul.game.yo-star.com),(PROCESS-NAME,python.exe)),DIRECT",
+               "DOMAIN-SUFFIX,mahjongsoul.game.yo-star.com,MajsoulMax",
+               "AND,((DOMAIN-SUFFIX,mahjongsoul.com),(PROCESS-NAME,python.exe)),DIRECT",
+               "DOMAIN-SUFFIX,mahjongsoul.com,MajsoulMax");
+          
+           return config;
+       }
+       ```
+     - 点击 `保存` 按钮
+     - 在 `代理` 页面，找到 `雀魂 MahjongSoul` ，选择 `MajsoulMax`
+
 5. 登录游戏开始享受
 
 ## 🤔Q&A
