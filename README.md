@@ -109,13 +109,13 @@
            config["rules"].unshift(
                "PROCESS-NAME,MajsoulMax.exe,DIRECT",
                "AND,((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,python.exe)),DIRECT",
-               "PROCESS-NAME,Jantama_MahjongSoul.exe,MajsoulMax",
+               "PROCESS-NAME,Jantama_MahjongSoul.exe,雀魂 MahjongSoul",
                "AND,((DOMAIN-SUFFIX,maj-soul.com),(PROCESS-NAME,python.exe)),DIRECT",
-               "DOMAIN-SUFFIX,maj-soul.com,MajsoulMax",
+               "DOMAIN-SUFFIX,maj-soul.com,雀魂 MahjongSoul",
                "AND,((DOMAIN-SUFFIX,mahjongsoul.game.yo-star.com),(PROCESS-NAME,python.exe)),DIRECT",
-               "DOMAIN-SUFFIX,mahjongsoul.game.yo-star.com,MajsoulMax",
+               "DOMAIN-SUFFIX,mahjongsoul.game.yo-star.com,雀魂 MahjongSoul",
                "AND,((DOMAIN-SUFFIX,mahjongsoul.com),(PROCESS-NAME,python.exe)),DIRECT",
-               "DOMAIN-SUFFIX,mahjongsoul.com,MajsoulMax");
+               "DOMAIN-SUFFIX,mahjongsoul.com,雀魂 MahjongSoul");
           
            return config;
        }
