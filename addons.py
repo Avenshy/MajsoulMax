@@ -9,8 +9,9 @@ from ruamel.yaml import YAML
 from sys import stdout
 from plugin import update_liqi
 
-VERSION = '20241202'
-logger.warning(f'\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}\n\
+VERSION = "20241202"
+logger.warning(
+    f"\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}\n\
 开源地址：https://github.com/Avenshy/MajsoulMax\n\n\
 本工具完全免费、开源，如果您为此付费，说明您被骗了！\n\
 本工具仅供学习交流，请在下载后24小时内删除，不得用于商业用途，否则后果自负！\n\
@@ -18,14 +19,18 @@ logger.warning(f'\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}
 请作者喝咖啡：\n\
 爱发电，支持支付宝、微信：https://afdian.net/a/Avenshy\n\
 Patreon，支持Paypal、信用卡：https://patreon.com/Avenshy\n\n\
-再次重申：脚本完全免费使用，没有收费功能，请喝咖啡完全自愿，作者非常感谢您！\n\n')
+再次重申：脚本完全免费使用，没有收费功能，请喝咖啡完全自愿，作者非常感谢您！\n\n"
+)
 
 logger.remove()
-logger.add(stdout, colorize=True,
-           format='<cyan>[{time:HH:mm:ss.SSS}]</cyan> <level>{message}</level>')
+logger.add(
+    stdout,
+    colorize=True,
+    format="<cyan>[{time:HH:mm:ss.SSS}]</cyan> <level>{message}</level>",
+)
 # 导入配置
 yaml = YAML()
-SETTINGS = yaml.load('''\
+SETTINGS = yaml.load("""\
 # 插件配置，true为开启，false为关闭
 plugin_enable:
   mod: true  # mod用于解锁全部角色、皮肤、装扮等
@@ -35,41 +40,53 @@ liqi:
   auto_update: true  # 是否自动更新
   github_token: '' # 仅供自己使用，请勿泄漏给任何人
   liqi_version: 'v0.11.107.w'  # 本地liqi文件版本
-''')
+  liqi_hash: ''  # 本地liqi文件hash
+""")
 try:
-    with open('./config/settings.yaml', 'r', encoding='utf-8') as f:
+    with open("./config/settings.yaml", "r", encoding="utf-8") as f:
         SETTINGS.update(yaml.load(f))
 except:
     logger.warning(
-        '''首次运行，默认启用mod，禁用helper\n
+        """首次运行，默认启用mod，禁用helper\n
         如需使用，请修改./config/settings.yaml文件\n
         修改完成后重新启动即可\n
-        ''')
+        """
+    )
 
 
-MOD_ENABLE = SETTINGS['plugin_enable']['mod']
-HELPER_ENABLE = SETTINGS['plugin_enable']["helper"]
-if SETTINGS['liqi']['auto_update']:
-    logger.info('正在检测liqi文件更新，请稍候……')
+MOD_ENABLE = SETTINGS["plugin_enable"]["mod"]
+HELPER_ENABLE = SETTINGS["plugin_enable"]["helper"]
+if SETTINGS["liqi"]["auto_update"]:
+    if "liqi_hash" not in SETTINGS["liqi"]:
+        SETTINGS["liqi"]["liqi_hash"] = ""
+    logger.info("正在检测liqi文件更新，请稍候……")
     try:
-        SETTINGS['liqi']['liqi_version'] = update_liqi.update(
-            SETTINGS['liqi']['liqi_version'],SETTINGS['liqi']['github_token'])
+        result = update_liqi.update(
+            SETTINGS["liqi"]["liqi_version"],
+            SETTINGS["liqi"]["github_token"],
+            SETTINGS["liqi"]["liqi_hash"],
+        )
+        SETTINGS["liqi"]["liqi_version"] = result["version"]
+        SETTINGS["liqi"]["liqi_hash"] = result["hash"]
     except:
-        logger.critical('liqi文件更新失败！可能会导致部分消息无法解析！')
-with open('./config/settings.yaml', 'w', encoding='utf-8') as f:
+        logger.critical("liqi文件更新失败！可能会导致部分消息无法解析！")
+with open("./config/settings.yaml", "w", encoding="utf-8") as f:
     yaml.dump(SETTINGS, f)
 logger.success(
-    f'''已载入配置：\n
+    f"""已载入配置：\n
     启用mod: {MOD_ENABLE}\n
     启用helper：{HELPER_ENABLE}\n
-    ''')
+    """
+)
 if MOD_ENABLE:
     mod_plugin = mod.mod(VERSION)
 if HELPER_ENABLE:
     helper_plugin = helper.helper()
 liqi_proto = liqi_new.LiqiProto()
 if not (MOD_ENABLE or HELPER_ENABLE):
-    logger.warning('请注意，当前没有开启任何功能，请修改./config/settings.yaml文件并重新启动！')
+    logger.warning(
+        "请注意，当前没有开启任何功能，请修改./config/settings.yaml文件并重新启动！"
+    )
 
 
 class WebSocketAddon:
@@ -78,23 +95,25 @@ class WebSocketAddon:
         assert flow.websocket is not None  # make type checker happy
         message = flow.websocket.messages[-1]
         # 不解析ob消息
-        if flow.request.path == '/ob':
+        if flow.request.path == "/ob":
             if message.from_client is False:
-                logger.debug(f'接收到（未解析）：{message.content}')
+                logger.debug(f"接收到（未解析）：{message.content}")
             else:
-                logger.debug(f'已发送（未解析）：{message.content}')
+                logger.debug(f"已发送（未解析）：{message.content}")
             return
         # 解析proto消息
         if MOD_ENABLE:
             # 如果启用mod，就把消息丢进mod里
             if not message.injected:
                 modify, drop, msg, inject, inject_msg = mod_plugin.main(
-                    message, liqi_proto)
+                    message, liqi_proto
+                )
                 if drop:
                     message.drop()
                 if inject:
                     ctx.master.commands.call(
-                        "inject.websocket", flow, True, inject_msg, False)
+                        "inject.websocket", flow, True, inject_msg, False
+                    )
                 if modify:
                     # 如果被mod修改就同步变更
                     message.content = msg
@@ -102,37 +121,35 @@ class WebSocketAddon:
             result = liqi_proto.parse(message)
         except:
             if message.from_client is False:
-                logger.error(f'接收到(error):{message.content}')
+                logger.error(f"接收到(error):{message.content}")
             else:
-                logger.error(f'已发送(error):{message.content}')
+                logger.error(f"已发送(error):{message.content}")
         else:
             if message.from_client is False:
                 if message.injected:
-                    logger.success(f'接收到(injected)：{result}')
+                    logger.success(f"接收到(injected)：{result}")
                 elif MOD_ENABLE and modify:
-                    logger.success(f'接收到(modify)：{result}')
+                    logger.success(f"接收到(modify)：{result}")
                 elif MOD_ENABLE and drop:
-                    logger.success(f'接收到(drop)：{result}')
+                    logger.success(f"接收到(drop)：{result}")
                 else:
-                    logger.info(f'接收到：{result}')
+                    logger.info(f"接收到：{result}")
                 if HELPER_ENABLE:
                     # 如果启用helper，就把消息丢进helper里
                     helper_plugin.main(result)
             else:
                 if MOD_ENABLE and modify:
-                    logger.success(f'已发送(modify)：{result}')
+                    logger.success(f"已发送(modify)：{result}")
                 else:
-                    logger.info(f'已发送：{result}')
+                    logger.info(f"已发送：{result}")
 
 
-addons = [
-    WebSocketAddon()
-]
+addons = [WebSocketAddon()]
 
 
 async def start_mitm():
     # 创建 mitmproxy 配置
-    opts = Options(listen_host='0.0.0.0', listen_port=23410,ssl_insecure=True)
+    opts = Options(listen_host="0.0.0.0", listen_port=23410, ssl_insecure=True)
     # 创建 DumpMaster，类似于 mitmdump 的功能
     master = DumpMaster(opts)
     # 加载自定义插件
@@ -143,6 +160,7 @@ async def start_mitm():
         master
     except KeyboardInterrupt:
         master.shutdown()
+
 
 if __name__ == "__main__":
     asyncio.run(start_mitm())
