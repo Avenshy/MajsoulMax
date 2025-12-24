@@ -104,7 +104,13 @@
 
 在配置分流规则前，请先在系统中导入并信任 `~/.mitmproxy/` 下的 `mitmproxy-ca.pem` 证书。这个证书是本地自动生成的，非常安全。否则 HTTPS 流量可能会因为证书校验失败而无法正常工作。
 
--   对于 Windows：点击对应位置的 `mitmproxy-ca.pem` 证书文件，跟随指引安装证书即可
+-   对于 Windows：
+    1. 双击对应位置的 `mitmproxy-ca.p12` 证书文件
+    2. 进入导入证书引导页，直接点击 `下一步` 按钮
+    3. 进入密码设置页，不需要设置密码，直接点击 `下一步` 按钮
+    4. 选择证书的存储区域，先勾选 `将所有的证书都放入下列存储` ，然后点击 `浏览` 按钮，选择证书存储位置为 `受信任的根证书颁发机构`，并点击 `确定` 按钮
+    5. 点击 `下一步` 按钮，完成证书导入
+    6. 若弹出安全警告，点击 `是` 按钮即可
 -   对于 macOS：
     1. 将证书拖入到 `钥匙串访问-系统-证书` 中
     2. `右键-显示简介-信任`，调整为始终信任，然后关闭，输入密码确认
@@ -139,15 +145,14 @@ proxy-groups:
 
 rules:
     # 避免回环
-    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul.com), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
+    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
     # 客户端 / Steam
     - PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将
-    - PROCESS-NAME,jantama_mahjongsoul.exe,🀄 雀魂麻将
     - PROCESS-NAME,雀魂麻將,🀄 雀魂麻将
     # 网页版
     - DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将
-    - DOMAIN-KEYWORD,mahjongsoul.com,🀄 雀魂麻将
+    - DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
     - DOMAIN-KEYWORD,catmajsoul,🀄 雀魂麻将
 ```
@@ -163,13 +168,13 @@ MajsoulMax = https, 127.0.0.1, 23410
 
 [Rule]
 # 避免回环代理
-AND, ((PROCESS-NAME, python*), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul.com), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
+AND, ((PROCESS-NAME, python*), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
 # 客户端 / Steam
 PROCESS-NAME,雀魂麻將,🀄 雀魂麻将
 # 网页版
 DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将
 DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将
-DOMAIN-KEYWORD,mahjongsoul.com,🀄 雀魂麻将
+DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将
 DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
 DOMAIN-KEYWORD,catmajsoul,🀄 雀魂麻将
 ```
@@ -198,19 +203,18 @@ function main(config) {
     });
 
     const bypass = [
-        'AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul.com), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT',
+        'AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT',
     ];
 
     const clientRules = [
         'PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将',
-        'PROCESS-NAME,jantama_mahjongsoul.exe,🀄 雀魂麻将',
         'PROCESS-NAME,雀魂麻將,🀄 雀魂麻将',
     ];
 
     const webRules = [
         'DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将',
         'DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将',
-        'DOMAIN-KEYWORD,mahjongsoul.com,🀄 雀魂麻将',
+        'DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将',
         'DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将',
         'DOMAIN-KEYWORD,catmajsoul,🀄 雀魂麻将',
     ];
@@ -241,13 +245,12 @@ function main(config) {
           - DIRECT
       type: select
 +rules:
-    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul.com), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
+    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
     - PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将
-    - PROCESS-NAME,jantama_mahjongsoul.exe,🀄 雀魂麻将
     - PROCESS-NAME,雀魂麻將,🀄 雀魂麻将
     - DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将
-    - DOMAIN-KEYWORD,mahjongsoul.com,🀄 雀魂麻将
+    - DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
     - DOMAIN-KEYWORD,catmajsoul,🀄 雀魂麻将
 ```
