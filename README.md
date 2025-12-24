@@ -102,21 +102,42 @@
 
 ### 信任证书
 
-在配置分流规则前，请先在系统中导入并信任 `~/.mitmproxy/` 下的 `mitmproxy-ca.pem` 证书。这个证书是本地自动生成的，非常安全。否则 HTTPS 流量可能会因为证书校验失败而无法正常工作。
+在配置分流规则前，请先在系统中导入并信任 `~/.mitmproxy/` 下的 `mitmproxy-ca-cert.cer` 证书。这个证书是本地自动生成的，非常安全。否则 HTTPS 流量可能会因为证书校验失败而无法正常工作。
 
--   对于 Windows：
-    1. 双击对应位置的 `mitmproxy-ca.p12` 证书文件
-    2. 进入导入证书引导页，直接点击 `下一步` 按钮
-    3. 进入密码设置页，不需要设置密码，直接点击 `下一步` 按钮
-    4. 选择证书的存储区域，先勾选 `将所有的证书都放入下列存储` ，然后点击 `浏览` 按钮，选择证书存储位置为 `受信任的根证书颁发机构`，并点击 `确定` 按钮
-    5. 点击 `下一步` 按钮，完成证书导入
-    6. 若弹出安全警告，点击 `是` 按钮即可
--   对于 macOS：
-    1. 将证书拖入到 `钥匙串访问-系统-证书` 中
-    2. `右键-显示简介-信任`，调整为始终信任，然后关闭，输入密码确认
--   对于 iOS / iPadOS：
-    1. 将对应的 `mitmproxy-ca.pem` 隔空投送到 iPhone /iPad 上，进入 `设置-已下载描述文件`，点击安装
-    2. 前往 `通用-关于本机-证书信任设置`，打开 mitmproxy 的选项
+#### Windows 用户
+
+1. 开启文件资源管理器（按下 `Windows 键 + E`）
+2. 在上方地址栏输入 `%USERPROFILE%\.mitmproxy`（mitmproxy 的默认证书存储路径）然后按 Enter
+3. 找到名为 `mitmproxy-ca-cert.cer` 的证书文件
+4. 双击该证书文件
+5. 点选 `安装证书` 按钮
+6. 若出现选项，请选 `本地计算机`，然后点选下一步
+7. 选择 `将所有证书放入下列存储`，然后点 `浏览...`
+8. 选择 `受信任的根证书颁发机构`，按下确定，再点选下一步与完成
+9. 若系统要求权限，请点选是
+
+#### macOS 用户
+
+1. 打开 Finder
+2. 按下 `Command + Shift + G` 打开前往文件夹对话框，输入 `~/.mitmproxy` 然后按 Enter
+3. 找到名为 `mitmproxy-ca-cert.cer` 的证书文件
+4. 双击该证书文件，进入钥匙串访问
+5. 点选左边的 `系统钥匙串` 下的 `系统` 标签，右上角搜索 `mitmproxy`，找到导入的证书，此时是未信任状态
+6. 右键名为 `mitmproxy` 的证书项，选择 `显示简介`，在弹出的窗口中展开 `信任`
+7. 对于 `使用此证书时`，改为 `始终信任`
+8. 关闭窗口，在弹出的认证框中完成认证即可。
+
+#### iOS / iPadOS 用户
+
+若你通过分离部署的形式将本项目改为了代理节点，则可以在 iOS / iPadOS 上使用，但此时仍需在对应设备上完成证书信任。
+
+1. 首先将电脑上的 `mitmproxy-ca-cert.cer` 证书通过隔空传送或者其他方式发送到 iPhone/iPad 上，最好是隔空投送，可以自动完成导入。对于其他方式，须先保存到文件中，然后再在文件中点开该证书文件。
+2. 进入 `设置-已下载描述文件`，点击安装
+3. 前往 `通用-关于本机-证书信任设置`，打开 mitmproxy 的选项
+
+#### Android 用户
+
+无测试环境，可自行搜索。
 
 > [!CAUTION]
 >
@@ -145,7 +166,7 @@ proxy-groups:
 
 rules:
     # 避免回环
-    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
+    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT
     # 客户端 / Steam
     - PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将
     - PROCESS-NAME,雀魂麻將,🀄 雀魂麻将
@@ -154,7 +175,6 @@ rules:
     - DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
-    - DOMAIN-KEYWORD,catmajsoul,🀄 雀魂麻将
 ```
 
 在 Surge 中可写成:
@@ -168,7 +188,7 @@ MajsoulMax = https, 127.0.0.1, 23410
 
 [Rule]
 # 避免回环代理
-AND, ((PROCESS-NAME, python*), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
+AND, ((PROCESS-NAME, python*), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT
 # 客户端 / Steam
 PROCESS-NAME,雀魂麻將,🀄 雀魂麻将
 # 网页版
@@ -176,7 +196,6 @@ DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将
 DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将
 DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将
 DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
-DOMAIN-KEYWORD,catmajsoul,🀄 雀魂麻将
 ```
 
 ### Clash Verge 全局扩展脚本（JS）示例
@@ -203,20 +222,16 @@ function main(config) {
     });
 
     const bypass = [
-        'AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT',
+        'AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT',
     ];
 
-    const clientRules = [
-        'PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将',
-        'PROCESS-NAME,雀魂麻將,🀄 雀魂麻将',
-    ];
+    const clientRules = ['PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将', 'PROCESS-NAME,雀魂麻將,🀄 雀魂麻将'];
 
     const webRules = [
         'DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将',
         'DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将',
         'DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将',
         'DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将',
-        'DOMAIN-KEYWORD,catmajsoul,🀄 雀魂麻将',
     ];
 
     config.rules.unshift(...bypass, ...clientRules, ...webRules);
@@ -226,7 +241,7 @@ function main(config) {
 
 ### Clash Party（原 Mihomo Party）覆写 YAML 示例
 
-参考 [官方文档](https://clashparty.org/docs/guide/override/yaml)），可以按照如下方式进行配置。
+参考 [官方文档](https://clashparty.org/docs/guide/override/yaml)，可以按照如下方式进行配置。
 
 在 Clash Party 左侧 `覆写` 页面点击 `+` 号，选择 `新建 YAML`，然后复制如下内容，点击 `确认` 保存，然后点击对应覆写卡片右上角的 `...` 图标，选择 `编辑信息` - `全局启用`。
 
@@ -245,14 +260,13 @@ function main(config) {
           - DIRECT
       type: select
 +rules:
-    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio), (DOMAIN-KEYWORD, catmajsoul)))), DIRECT
+    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT
     - PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将
     - PROCESS-NAME,雀魂麻將,🀄 雀魂麻将
     - DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
-    - DOMAIN-KEYWORD,catmajsoul,🀄 雀魂麻将
 ```
 
 ## 🤔Q&A
