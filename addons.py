@@ -4,12 +4,12 @@ from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options
 from loguru import logger
 from mitmproxy import http, ctx
-from plugin import helper, mod
+from plugin import helper, mod,replace
 from ruamel.yaml import YAML
 from sys import stdout
 from plugin import update_liqi
 
-VERSION = "20241202"
+VERSION = "20251224"
 logger.warning(
     f"\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}\n\
 开源地址：https://github.com/Avenshy/MajsoulMax\n\n\
@@ -56,6 +56,7 @@ except:
 
 MOD_ENABLE = SETTINGS["plugin_enable"]["mod"]
 HELPER_ENABLE = SETTINGS["plugin_enable"]["helper"]
+REPLACE_ENABLE = SETTINGS['plugin_enable']["replace"]
 if SETTINGS["liqi"]["auto_update"]:
     if "liqi_hash" not in SETTINGS["liqi"]:
         SETTINGS["liqi"]["liqi_hash"] = ""
@@ -76,20 +77,23 @@ logger.success(
     f"""已载入配置：\n
     启用mod: {MOD_ENABLE}\n
     启用helper：{HELPER_ENABLE}\n
+    启用replace：{REPLACE_ENABLE}\n
     """
 )
 if MOD_ENABLE:
     mod_plugin = mod.mod(VERSION)
 if HELPER_ENABLE:
     helper_plugin = helper.helper()
+if REPLACE_ENABLE:
+    replace_plugin = replace.replace()
 liqi_proto = liqi_new.LiqiProto()
-if not (MOD_ENABLE or HELPER_ENABLE):
+if not (MOD_ENABLE or HELPER_ENABLE or REPLACE_ENABLE):
     logger.warning(
         "请注意，当前没有开启任何功能，请修改./config/settings.yaml文件并重新启动！"
     )
 
 
-class WebSocketAddon:
+class MajsoulMaxAddon:
     def websocket_message(self, flow: http.HTTPFlow):
         # 在捕获到WebSocket消息时触发
         assert flow.websocket is not None  # make type checker happy
@@ -103,12 +107,12 @@ class WebSocketAddon:
             return
         # 解析proto消息
         if MOD_ENABLE:
-            # 如果启用mod，就把消息丢进mod里
-            if not message.injected:
+            # 如果启用mod，就把WS消息丢进mod里
+            if not message.injected: # 不解析MAX自己插入的WS消息
                 modify, drop, msg, inject, inject_msg = mod_plugin.main(
                     message, liqi_proto
                 )
-                if drop:
+                if drop: 
                     message.drop()
                 if inject:
                     ctx.master.commands.call(
@@ -118,7 +122,7 @@ class WebSocketAddon:
                     # 如果被mod修改就同步变更
                     message.content = msg
         try:
-            result = liqi_proto.parse(message)
+            result = liqi_proto.parse(message) # 解析消息
         except:
             if message.from_client is False:
                 logger.error(f"接收到(error):{message.content}")
@@ -142,10 +146,20 @@ class WebSocketAddon:
                     logger.success(f"已发送(modify)：{result}")
                 else:
                     logger.info(f"已发送：{result}")
+    def request(self,flow: http.HTTPFlow):
+        # 在捕获到HTTP消息时触发
+        if REPLACE_ENABLE:
+            # 如果启用replace，就把HTTP消息丢进replace里
+            path = replace_plugin.main(flow.request)
+            if path != '':
+                with open(f"./replace{path}","rb") as f:
+                    if (body := f.read() )!=b"":
+                        flow.response = http.Response.make(200, body) #,  {"Content-Type": "image/png"})
+                        logger.success(f"已替换(replace)：{flow.request.path}")
+                    else:
+                        logger.error(f"替换错误(error):{flow.request.path}")
 
-
-addons = [WebSocketAddon()]
-
+addons = [MajsoulMaxAddon()]
 
 async def start_mitm():
     # 创建 mitmproxy 配置
@@ -153,7 +167,7 @@ async def start_mitm():
     # 创建 DumpMaster，类似于 mitmdump 的功能
     master = DumpMaster(opts)
     # 加载自定义插件
-    master.addons.add(WebSocketAddon())
+    master.addons.add(MajsoulMaxAddon())
     try:
         # 启动 mitmproxy
         await master.run()
