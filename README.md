@@ -44,35 +44,40 @@
 
 ## 🥰 当前功能
 
-程序包含两部分：`mod` 和 `helper`，可以说是 [雀魂 mod_plus](https://github.com/Avenshy/majsoul_mod_plus) 和 [mahjong-helper-majsoul-mitmproxy](https://github.com/Avenshy/mahjong-helper-majsoul-mitmproxy) 的融合。
+程序包含三部分：包括 `mod` 、 `helper` 和 `replace` ，可以说是 [雀魂 mod_plus](https://github.com/Avenshy/majsoul_mod_plus) 和 [mahjong-helper-majsoul-mitmproxy](https://github.com/Avenshy/mahjong-helper-majsoul-mitmproxy) 的融合和升级。
 
-程序默认配置为启用 `mod`、禁用 `helper`。如需自定义，请修改 `config/settings.yaml` 中的 `plugin_enable`。
+程序默认配置为启用 `mod`、禁用 `helper` 和 `replace` 。如需自定义，请修改 `config/settings.yaml` 中的 `plugin_enable`。
 
 ### `mod` 功能
 
--   解锁所有角色与皮肤
--   解锁所有装扮
--   解锁所有语音（报菜名）
--   解锁所有称号
--   解锁所有加载 CG
--   解锁所有表情（不推荐开启）
--   强制启用便捷提示
+- [x] 解锁所有角色与皮肤
+- [x] 解锁所有装扮
+- [x] 解锁所有语音（报菜名）
+- [x] 解锁所有称号
+- [x] 解锁所有加载 CG
+- [x] 解锁所有表情（不推荐开启）
+- [x] 强制启用便捷提示
     -   由于雀魂本身代码限制，王座无法正常启用便捷提示，因此，**开启此功能后进入王座对局，左上角会变成 “玉之间”**。请注意，这不是 BUG！
--   支持星标角色
--   自定义名称
--   显示玩家所在服务器
--   显示主播 / Pro 标识
+- [x] 支持星标角色
+- [x] 自定义名称
+- [x] 显示玩家所在服务器
+- [x] 显示主播 / Pro 标识
+- [ ] 地铁模式
 -   TODO……
 
 ### `helper` 功能
 
 -   将对局发送到 [mahjong-helper（雀魂小助手）](https://github.com/EndlessCheng/mahjong-helper)
 
+### `replace` 功能
+
+-   替换游戏资源文件，仅支持网页版。
+  
 ## 🧐 使用说明
 
-### 视频教程
+### 视频教程（老方法，不推荐）
 
-[雀魂 MAX 使用教程，2 分钟解锁所有角色皮肤装扮等](https://www.bilibili.com/video/BV12F4m1w7d9/)
+[雀魂 MAX 使用教程，2 分钟解锁所有角色皮肤装扮等](https://www.acfun.cn/v/ac44409913)
 
 ### 文字教程
 
@@ -166,10 +171,10 @@ proxy-groups:
 
 rules:
     # 避免回环
-    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT
+    - AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT
     # 客户端 / Steam
     - PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将
-    - PROCESS-NAME,雀魂麻將,🀄 雀魂麻将
+    - PROCESS-NAME,雀魂麻將.exe,🀄 雀魂麻将
     # 网页版
     - DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将
@@ -222,10 +227,10 @@ function main(config) {
     });
 
     const bypass = [
-        'AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT',
+        'AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT',
     ];
 
-    const clientRules = ['PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将', 'PROCESS-NAME,雀魂麻將,🀄 雀魂麻将'];
+    const clientRules = ['PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将', 'PROCESS-NAME,雀魂麻將.exe,🀄 雀魂麻将'];
 
     const webRules = [
         'DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将',
@@ -260,14 +265,168 @@ function main(config) {
           - DIRECT
       type: select
 +rules:
-    - AND, ((PROCESS-NAME-REGEX, python.*?), (OR, ((DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT
+    - AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD,majsoul),(DOMAIN-KEYWORD,maj-soul),(DOMAIN-KEYWORD,mahjongsoul),(DOMAIN-KEYWORD,catmjstudio)))), DIRECT
     - PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将
-    - PROCESS-NAME,雀魂麻將,🀄 雀魂麻将
+    - PROCESS-NAME,雀魂麻將.exe,🀄 雀魂麻将
     - DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将
     - DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
 ```
+
+## 📄配置文件解释
+
+### `settings.yaml`
+这是主程序配置文件，用于存储插件配置和liqi依赖的更新信息。
+
+```yml
+# 插件配置，true为开启，false为关闭
+plugin_enable:
+  mod: true  # mod用于解锁全部角色、皮肤、装扮等
+  helper: false  # helper用于将对局发送至雀魂小助手，不使用小助手请勿开启
+  replace: false  # replace用于替换雀魂的游戏内容
+# liqi用于解析雀魂消息
+liqi:
+  auto_update: true  # 是否自动更新
+  github_token: '' # 仅供自己使用，请勿泄漏给任何人
+  liqi_version: 'v0.11.210.w'  # 本地liqi文件版本
+  liqi_hash: 'bda101be45d295fb525efd3c20124fa90cb39dd6fd2eca0aeb6e1dd086b6b622'  # 本地liqi文件hash
+```
+
+### `settings.mod.yaml`
+这是mod的配置文件，大多数功能直接在游戏中设定即可，只有小部分无法在游戏中设定的，才在此处修改。
+
+修改完成后需要重新启动MajsoulMax。
+
+只有在启用mod插件后，才会生成该配置文件。
+
+```yml
+# 需要自定义的配置主要集中在这里，大多数无需修改，在游戏内设置即可更新
+config:
+  character: 200001  # 当前看板娘
+  characters: {}  # 各角色使用的皮肤
+  nickname: '' # 自定义你的名字
+  star_chars: [] # 星标角色
+  bianjietishi: false # 强制启用便捷提示，用于部分场没有宝牌指示、和牌指示等
+  title: 0  # 当前使用的称号
+  loading_image: [] # 加载CG
+  emoji: false # 不建议开启，用于解锁角色全部emoji，如果你本身角色没有额外表情，在对局中却发送额外表情，这种行为相当于自爆卡车
+  views: # 各装扮页的装扮
+    0: []
+    1: []
+    2: []
+    3: []
+    4: []
+    5: []
+    6: []
+    7: []
+    8: []
+    9: []
+  views_index: 0 # 正在使用的装扮页
+  show_server: true # 显示其他玩家所在服务器
+  verified: 0 # 标识设置，0为无标识，1为主播标识，2为Pro标识，显示在名字后面
+  anti_replace_nickname: true # 禁止将外服玩家设为默认名称，特殊时期必备
+  random_character: # 对局随机角色皮肤
+    enabled: false
+    pool: []
+# 资源文件lqc.lqbin的配置                            
+resource:
+  auto_update: true # 自动更新lqc.lqbin
+  lqc_lqbin_version: 'v0.11.104.w' # lqc.lqbin文件版本
+# 下面是游戏的资源文件内容，包括需要获得的角色、物品等，不需要修改，除非你要自定义
+mod: {}
+```
+### `settings.helper.yaml`
+这是helper的配置文件，若未更改过小助手的地址则无需手动修改。
+
+修改完成后需要重新启动MajsoulMax。
+
+只有在启用helper插件后，才会生成该配置文件。
+
+```yml
+config:
+  api_url: https://localhost:12121/   # 小助手的地址
+```
+### `settings.replace.yaml`
+这是replace的配置文件，用于存储需要进行替换的游戏文件地址，仅支持网页版，建议在替换前清除浏览器缓存，或在游戏页面使用 `Ctrl+F5` 刷新网页。
+
+修改完成后需要重新启动MajsoulMax。
+
+只有在启用replace插件后，才会生成该配置文件。
+
+```yml
+config:
+  http: []
+  lq: []
+```
+<details>
+
+<summary>Example</summary>
+
+例如，我需要替换如下3个文件，用于替换柚的足见独白动态皮肤：
+- `https://game.maj-soul.com/1/v0.11.155.w/lang/base/extendRes/charactor/you_BL/spine/spine.skel.txt`
+- `https://game.maj-soul.com/1/v0.11.155.w/lang/base/extendRes/charactor/you_BL/spine/spine.atlas.txt`
+- `https://game.maj-soul.com/1/v0.11.155.w/lang/base/extendRes/charactor/you_BL/spine/you_bl.png`
+
+可以直接在配置文件中填入这三个文件名：
+
+```yml
+config:
+  http:
+  - spine.skel.txt
+  - spine.atlas.txt
+  - you_bl.png
+  lq: []
+```
+
+并将这三个用于替换的文件，放入 `MajsoulMax/replace` 文件夹下即可。
+
+但在这里会遇到一个问题，如果需要同时替换其他动态皮肤，这些动态皮肤同样也会使用 `spine.skel.txt` 和 `spine.atlas.txt` 文件，该如何避免冲突呢？
+
+另外，我也希望在玩其他语言服务器时，同样也能将皮肤给替换掉。拿第一个文件 `spine.skel.txt` 来说，我们观察到不同服务器的地址虽然不同，但仍然有相同之处：
+- CN: `https://game.maj-soul.com/1/v0.11.155.w/lang/base/extendRes/charactor/you_BL/spine/spine.skel.txt`
+- EN: `https://mahjongsoul.game.yo-star.com/v0.11.155.w/en/extendRes/charactor/you_BL/spine/spine.skel.txt`
+- JP: `https://game.mahjongsoul.com/v0.11.155.w/jp/extendRes/charactor/you_BL/spine/spine.skel.txt`
+
+根据这些地址可以看出，末尾的 `charactor/you_BL/spine/spine.skel.txt` 这一段是相同的，因此在配置文件中可以据此进行填入：
+
+```yml
+config:
+  http:
+  - /charactor/you_BL/spine/spine.skel.txt
+  - /charactor/you_BL/spine/spine.atlas.txt
+  - /charactor/you_BL/spine/you_bl.png
+  lq: []
+```
+而文件则需要根据配置文件进行放置，此时文件树如下：
+```
+MajsoulMax
+├─ config
+├─ plugin
+├─ proto
+├─ ...
+└─ replace
+   └─ charactor
+      └─ you_BL
+         └─ spine
+            ├─ spine.skel.txt
+            ├─ spine.atlas.txt
+            └─ you_bl.png
+```
+
+最终效果如图所示：
+<details>
+    <summary>🔞NSFW🔞 小孩子不能点哦</summary>
+
+
+顺便感谢yijyu老师制作的色色l2d动态皮肤，据说也有偿接各种改图，感兴趣的可以去[他的频道（@yijyuqos2）](https://t.me/yijyuqos2)看看
+
+![image.png](https://s2.loli.net/2026/01/15/RZwfEaYVeHMzSId.png)
+
+</details>
+
+
+</details>
 
 ## 🤔Q&A
 
