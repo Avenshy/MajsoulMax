@@ -373,9 +373,9 @@ config:
 ```yml
 config:
   http:
-  - spine.skel.txt
-  - spine.atlas.txt
-  - you_bl.png
+  - /spine.skel.txt
+  - /spine.atlas.txt
+  - /you_bl.png
   lq: []
 ```
 
