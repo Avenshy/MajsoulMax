@@ -9,7 +9,7 @@ from ruamel.yaml import YAML
 from sys import stdout
 from plugin import update_liqi
 
-VERSION = "20260111"
+VERSION = "20260118"
 logger.warning(
     f"\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}\n\
 开源地址：https://github.com/Avenshy/MajsoulMax\n\n\
@@ -35,12 +35,13 @@ SETTINGS = yaml.load("""\
 plugin_enable:
   mod: true  # mod用于解锁全部角色、皮肤、装扮等
   helper: false  # helper用于将对局发送至雀魂小助手，不使用小助手请勿开启
+  replace: false  # replace用于替换雀魂的游戏内容
 # liqi用于解析雀魂消息
 liqi:
   auto_update: true  # 是否自动更新
   github_token: '' # 仅供自己使用，请勿泄漏给任何人
-  liqi_version: 'v0.11.210.w'  # 本地liqi文件版本
-  liqi_hash: 'bda101be45d295fb525efd3c20124fa90cb39dd6fd2eca0aeb6e1dd086b6b622'  # 本地liqi文件hash
+  liqi_version: 'v0.11.215.w'  # 本地liqi文件版本
+  liqi_hash: 'e28220072e6cc4bc410df9d5b286984bc874511b37b23b8d08d81fc5e5dc1d5b'  # 本地liqi文件hash
 """)
 try:
     with open("./config/settings.yaml", "r", encoding="utf-8") as f:

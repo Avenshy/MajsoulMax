@@ -48,6 +48,7 @@ config:
   random_character: # 对局随机角色皮肤
     enabled: false
     pool: []
+  safe_mode: false  # 地铁模式，将除自己外所有人变成一姬初始形象，防止被误认为玩黄油。电脑形象请打开“游戏设置-偏好-电脑形象-一姬的初始形象”选项。
 # 资源文件lqc.lqbin的配置                            
 resource:
   auto_update: true # 自动更新lqc.lqbin
@@ -211,6 +212,10 @@ mod: {}
 
                         if self.settings['config']['show_server']:
                             p.nickname =self.get_zone_id(p.account_id)+p.nickname
+                        if self.settings['config']['safe_mode']:
+                            p.character.charid=200001
+                            p.character.skin=400101
+                            p.avatar_id= 400101
                     # for p in data.update_list:
                     #     if p.account_id == self.safe['account_id']:
                     #         p.avatar_id = self.settings['config']['characters'][self.settings['config']['character']]
@@ -476,6 +481,7 @@ mod: {}
                             p.character.level = 5
                             p.character.is_upgraded = True
                             p.character.rewarded_level.extend([1, 2, 3, 4, 5])
+                            p.character.exp = 0
                             if p.account_id == self.safe['account_id']:
                                 if self.settings['config']['random_character']['enabled'] and self.settings['config']['random_character']['pool']!=[]: # 处理随机角色
                                     item = random.choice(self.settings['config']['random_character']['pool'])
@@ -484,7 +490,6 @@ mod: {}
                                 else:
                                     p.character.charid = self.settings['config']['character']
                                     p.avatar_id = p.character.skin = self.settings['config']['characters'][self.settings['config']['character']]
-                                p.character.exp = 0
                                 if self.settings['config']['emoji']:
                                     p.character.extra_emoji.extend(
                                         self.settings['mod']['emoji'][p.character.charid])
@@ -506,6 +511,19 @@ mod: {}
 
                             if self.settings['config']['show_server']:
                                 p.nickname =self.get_zone_id(p.account_id)+p.nickname
+                            if self.settings['config']['safe_mode']:
+                                p.character.charid=200001
+                                p.character.skin=400101
+                                p.avatar_id= 400101
+                        for p in data.robots:
+                            p.character.level = 5
+                            p.character.is_upgraded = True
+                            p.character.rewarded_level.extend([1, 2, 3, 4, 5])
+                            p.character.exp = 0
+                            if self.settings['config']['safe_mode']:
+                                p.character.charid=200001
+                                p.character.skin=400101
+                                p.avatar_id= 400101
                     case '.lq.Lobby.fetchAccountInfo':  # 个人信息页和游戏结束
                         data = liqi_pb2.ResAccountInfo()
                         data.ParseFromString(msg_block.data)
@@ -701,6 +719,7 @@ mod: {}
                             data.settings.nickname_setting.ClearField(
                                 'nicknames')
                     case '.lq.Lobby.fetchGameRecord':
+                        modify = True
                         data = liqi_pb2.ResGameRecord()
                         data.ParseFromString(msg_block.data)
                         uuid = data.head.uuid
@@ -715,14 +734,53 @@ mod: {}
                                     result+='西: '
                                 case 3:
                                     result+='北: '
+                            account.character.level = 5
+                            account.character.is_upgraded = True
+                            account.character.rewarded_level.extend([1, 2, 3, 4, 5])
+                            account.character.exp = 0
                             if account.account_id == self.safe['account_id']:
                                 result+='（自己）'
+                                if self.settings['config']['random_character']['enabled'] and self.settings['config']['random_character']['pool']!=[]: # 处理随机角色
+                                    item = random.choice(self.settings['config']['random_character']['pool'])
+                                    account.character.charid = item['character_id']
+                                    account.avatar_id = account.character.skin = item['skin_id']
+                                else:
+                                    account.character.charid = self.settings['config']['character']
+                                    account.avatar_id = p.character.skin = self.settings['config']['characters'][self.settings['config']['character']]
+
+                                if self.settings['config']['emoji']:
+                                    account.character.extra_emoji.extend(
+                                        self.settings['mod']['emoji'][account.character.charid])
+                                if self.settings['config']['nickname'] != '':
+                                    account.nickname = self.settings['config']['nickname']
+                                account.title = self.settings['config']['title']
+                                account.ClearField('views')
+                                for view in self.settings['config']['views'][self.settings['config']['views_index']]:
+                                    view_slot = account.views.add()
+                                    #json_format.ParseDict(view, view_slot)
+                                    view_slot.slot = view['slot']
+                                    if view['type'] == 0: # 非随机装扮
+                                        view_slot.item_id = view['item_id']
+                                    else: # 随机装扮，要自己抽
+                                        view_slot.item_id = random.choice(view['item_id_list'])
+                                    if view['slot'] == 5:
+                                        account.avatar_frame = view['item_id']
+                                account.verified = self.settings['config']['verified']
+                            elif self.settings['config']['safe_mode']:
+                                account.character.charid=200001
+                                account.character.skin=400101
+                                account.avatar_id= 400101
+                            if self.settings['config']['show_server']:
+                                account.nickname =self.get_zone_id(account.account_id)+account.nickname
+
                             result += f'{self.get_zone_id(account.account_id)}{account.nickname}\n\
 账号id: {account.account_id}   加好友id: {self.encode_account_id2(account.account_id)}\n\
 主视角牌谱链接: {uuid}_a{self.encode_account_id(account.account_id)}\n\
 主视角牌谱链接（匿名）: {self.encodePaipuUUID(uuid)}_a{self.encode_account_id(account.account_id)}_2\n\n'
+                            
                         result+='注意：只有在同一服务器才能添加好友！'
                         logger.success(result)
+
                     case '.lq.Lobby.fetchRandomCharacter':
                         modify = True
                         data = liqi_pb2.ResRandomCharacter()
