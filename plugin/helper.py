@@ -65,11 +65,14 @@ config:
         if result['method'] in self.method:
             if result['method'] == '.lq.ActionPrototype':
                 if result['data']['name'] in self.action:
-                    if (data := result['data']['data']) == 'ActionNewRound':
+                    data = result['data']['data']
+                    if result['data']['name'] == 'ActionNewRound':
                         # 雀魂弃用了md5改用sha256，小助手太老了，只支持md5
                         # 但没有该字段会导致小助手报错无法解析牌局，也不能留空
                         # 所以干脆发一个假的，反正也用不到
-                        data['md5'] = data['sha256'][:32]
+                        sha256 = data.get('sha256')
+                        if sha256:
+                            data['md5'] = sha256[:32]
                 else:
                     return
             elif result['method'] == '.lq.FastTest.syncGame':  # 重新进入对局时
@@ -98,3 +101,4 @@ config:
                 logger.success(f'[helper] 已发送：{data["liqi"]}')
                 requests.post(self.settings['config']['api_url'],
                               json=data['liqi'], verify=False)
+
