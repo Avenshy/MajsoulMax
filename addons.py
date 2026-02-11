@@ -9,7 +9,7 @@ from ruamel.yaml import YAML
 from sys import stdout
 from plugin import update_liqi
 
-VERSION = "20260118"
+VERSION = "20260212"
 logger.warning(
     f"\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}\n\
 开源地址：https://github.com/Avenshy/MajsoulMax\n\n\
@@ -40,8 +40,8 @@ plugin_enable:
 liqi:
   auto_update: true  # 是否自动更新
   github_token: '' # 仅供自己使用，请勿泄漏给任何人
-  liqi_version: 'v0.11.215.w'  # 本地liqi文件版本
-  liqi_hash: 'e28220072e6cc4bc410df9d5b286984bc874511b37b23b8d08d81fc5e5dc1d5b'  # 本地liqi文件hash
+  liqi_version: 'v0.11.219.w'  # 本地liqi文件版本
+  liqi_hash: 'e6a718c1e50b41471453b16c75b2992cbb05c2c84297b6d55edd1499a089530e'  # 本地liqi文件hash
 """)
 try:
     with open("./config/settings.yaml", "r", encoding="utf-8") as f:

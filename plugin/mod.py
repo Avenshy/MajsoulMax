@@ -52,7 +52,7 @@ config:
 # 资源文件lqc.lqbin的配置                            
 resource:
   auto_update: true # 自动更新lqc.lqbin
-  lqc_lqbin_version: 'v0.11.104.w' # lqc.lqbin文件版本
+  lqc_lqbin_version: 'v0.11.219.w' # lqc.lqbin文件版本
 # 下面是游戏的资源文件内容，包括需要获得的角色、物品等，不需要修改，除非你要自定义
 mod: {}
 ''')
