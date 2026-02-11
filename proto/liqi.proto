@@ -1341,6 +1341,7 @@ message AccountActivityUpdate {
     repeated lq.ActivityShootData shoot_data = 18;
     repeated lq.ActivityBingoData bingo_data = 19;
     repeated lq.ActivitySnowballValueChanges snowball_data = 20;
+    repeated lq.ActivityChooseGroupData choose_group_up_data = 21;
 }
 
 message ActivityCombiningWorkbench {
@@ -1649,6 +1650,13 @@ message ActivityChooseUpData {
     uint32 chest_id = 2;
     uint32 selection = 3;
     uint32 is_end = 4;
+}
+
+message ActivityChooseGroupData {
+
+    uint32 activity_id = 1;
+    uint32 chest_id = 2;
+    uint32 selection_id = 3;
 }
 
 message ActivityFriendGiftData {
@@ -2081,7 +2089,6 @@ message CustomizedContestDetail {
     uint32 contest_id = 2;
     string contest_name = 3;
     uint32 state = 4;
-    uint32 creator_id = 5;
     uint32 create_time = 6;
     uint32 start_time = 7;
     uint32 finish_time = 8;
@@ -3283,6 +3290,44 @@ message ClientDeviceInfoLog {
     uint32 login_time = 2;
     uint32 account_id = 3;
 }
+
+message MarathonGameRecord {
+
+    uint32 point = 1;
+    uint32 distance = 2;
+    uint32 used_tick = 3;
+}
+
+message ActivityMarathonData {
+
+    uint32 activity_id = 1;
+    MarathonGameRecord highest_record = 2;
+    MarathonRaceData race_data = 3;
+    repeated MarathonRaceHistory history = 4;
+
+    message MarathonRaceData {
+
+        string id = 1;
+        uint32 random_seed = 2;
+        uint32 start_time = 3;
+    }
+
+    message MarathonRaceHistory {
+
+        MarathonRaceData race_data = 1;
+        MarathonGameRecord record = 2;
+    }
+}
+
+message ActivityMarathonCheckData {
+
+    uint32 round = 1;
+    repeated uint32 item = 2;
+    string tile = 3;
+    uint32 tick = 4;
+    uint32 point = 5;
+    uint32 time_end = 6;
+}
 service Lobby {
     rpc fetchConnectionInfo (ReqCommon) returns (ResConnectionInfo);
     rpc fetchQueueInfo (ReqCommon) returns (ResFetchQueueInfo);
@@ -3520,11 +3565,13 @@ service Lobby {
     rpc completeActivityTask (ReqCompleteActivityTask) returns (ResCommon);
     rpc completeActivityTaskBatch (ReqCompleteActivityTaskBatch) returns (ResCommon);
     rpc completeActivityFlipTask (ReqCompleteActivityTask) returns (ResCommon);
+    rpc completeActivityFlipTaskBatch (ReqCompleteActivityFlipTaskBatch) returns (ResCompleteActivityFlipTaskBatch);
     rpc completePeriodActivityTask (ReqCompleteActivityTask) returns (ResCommon);
     rpc completePeriodActivityTaskBatch (ReqCompletePeriodActivityTaskBatch) returns (ResCommon);
     rpc completeRandomActivityTask (ReqCompleteActivityTask) returns (ResCommon);
     rpc completeRandomActivityTaskBatch (ReqCompleteActivityTaskBatch) returns (ResCommon);
     rpc receiveActivityFlipTask (ReqReceiveActivityFlipTask) returns (ResReceiveActivityFlipTask);
+    rpc receiveActivityFlipTaskBatch (ReqReceiveActivityFlipTaskBatch) returns (ResReceiveActivityFlipTaskBatch);
     rpc completeSegmentTaskReward (ReqCompleteSegmentTaskReward) returns (ResCompleteSegmentTaskReward);
     rpc fetchActivityFlipInfo (ReqFetchActivityFlipInfo) returns (ResFetchActivityFlipInfo);
     rpc gainAccumulatedPointActivityReward (ReqGainAccumulatedPointActivityReward) returns (ResCommon);
@@ -3661,7 +3708,8 @@ service Lobby {
     rpc createSeerReport (ReqCreateSeerReport) returns (ResCreateSeerReport);
     rpc fetchSeerReportList (ReqCommon) returns (ResFetchSeerReportList);
     rpc fetchSeerInfo (ReqCommon) returns (ResFetchSeerInfo);
-    rpc selectChestChooseUpActivity (ReqSelectChestChooseUp) returns (ReqCommon);
+    rpc selectChestChooseUpActivity (ReqSelectChestChooseUp) returns (ResCommon);
+    rpc selectChestChooseGroupActivity (ReqSelectChestChooseGroupActivity) returns (ResCommon);
     rpc generateAnnualReportToken (ReqGenerateAnnualReportToken) returns (ResGenerateAnnualReportToken);
     rpc fetchAnnualReportInfo (ReqCommon) returns (ResFetchAnnualReportInfo);
     rpc remarkFriend (ReqRemarkFriend) returns (ResCommon);
@@ -3685,6 +3733,8 @@ service Lobby {
     rpc snowballActivityFinishBattle (ReqSnowballActivityFinishBattle) returns (ResSnowballActivityFinishBattle);
     rpc snowballActivityUpgrade (ReqSnowballActivityUpgrade) returns (ResSnowballActivityUpgrade);
     rpc snowballActivityReceiveReward (ReqSnowballActivityReceiveReward) returns (ResSnowballActivityReceiveReward);
+    rpc marathonActivityStartRace (ReqMarathonActivityStartRace) returns (ResMarathonActivityStartRace);
+    rpc marathonActivityFinishRace (ReqMarathonActivityFinishRace) returns (ResMarathonActivityFinishRace);
 }
 
 message ResConnectionInfo {
@@ -5344,6 +5394,7 @@ message ReqOpenChest {
     uint32 count = 2;
     bool use_ticket = 3;
     uint32 choose_up_activity_id = 4;
+    uint32 choose_group_activity_id = 5;
 }
 
 message ResOpenChest {
@@ -5890,6 +5941,8 @@ message ResAccountActivityData {
     repeated lq.ActivityShootData shoot_data = 34;
     repeated lq.ActivityBingoData bingo_data = 35;
     repeated lq.ActivitySnowballData snowball_data = 36;
+    repeated lq.ActivityMarathonData marathon_data = 37;
+    repeated lq.ActivityChooseGroupData choose_group_up_data = 38;
 
     message ActivitySignInData {
 
@@ -5980,6 +6033,17 @@ message ResReceiveActivityFlipTask {
     Error error = 2;
 }
 
+message ReqReceiveActivityFlipTaskBatch {
+
+    repeated uint32 task_list = 1;
+}
+
+message ResReceiveActivityFlipTaskBatch {
+
+    Error error = 1;
+    uint32 count = 2;
+}
+
 message ReqCompleteSegmentTaskReward {
 
     uint32 task_id = 1;
@@ -6002,6 +6066,17 @@ message ResFetchActivityFlipInfo {
     repeated uint32 rewards = 1;
     uint32 count = 2;
     Error error = 3;
+}
+
+message ReqCompleteActivityFlipTaskBatch {
+
+    repeated uint32 task_list = 1;
+}
+
+message ResCompleteActivityFlipTaskBatch {
+
+    Error error = 1;
+    repeated ExecuteReward total_rewards = 2;
 }
 
 message ReqGainAccumulatedPointActivityReward {
@@ -7748,6 +7823,13 @@ message ReqSelectChestChooseUp {
     uint32 chest_id = 3;
 }
 
+message ReqSelectChestChooseGroupActivity {
+
+    uint32 activity_id = 1;
+    uint32 selection = 2;
+    uint32 chest_id = 3;
+}
+
 message ReqGenerateAnnualReportToken {
 
     string lang = 1;
@@ -8070,6 +8152,33 @@ message ResSnowballActivityReceiveReward {
 
     Error error = 1;
     ActivitySnowballValueChanges changes = 2;
+    repeated ExecuteReward rewards = 3;
+}
+
+message ReqMarathonActivityStartRace {
+
+    uint32 activity_id = 1;
+}
+
+message ResMarathonActivityStartRace {
+
+    Error error = 1;
+    uint32 random_seed = 2;
+    string race_id = 3;
+}
+
+message ReqMarathonActivityFinishRace {
+
+    uint32 activity_id = 1;
+    repeated ActivityMarathonCheckData race_data = 2;
+    MarathonGameRecord record = 3;
+    string race_id = 4;
+}
+
+message ResMarathonActivityFinishRace {
+
+    Error error = 1;
+    MarathonGameRecord highest_record = 2;
     repeated ExecuteReward rewards = 3;
 }
 
