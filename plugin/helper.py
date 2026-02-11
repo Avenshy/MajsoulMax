@@ -65,9 +65,9 @@ config:
         if result['method'] in self.method:
             if result['method'] == '.lq.ActionPrototype':
                 if result['data']['name'] in self.action:
-                    if (data := result['data']['data']) == 'ActionNewRound':
-                        # 雀魂弃用了md5改用sha256，小助手太老了，只支持md5
-                        # 但没有该字段会导致小助手报错无法解析牌局，也不能留空
+                    data = result['data']['data']
+                    if result['data']['name'] == 'ActionNewRound':
+                        # 雀魂弃用了md5改用sha256，但没有该字段会导致小助手无法解析牌局，也不能留空
                         # 所以干脆发一个假的，反正也用不到
                         data['md5'] = data['sha256'][:32]
                 else:
