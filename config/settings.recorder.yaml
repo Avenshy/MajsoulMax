@@ -1,0 +1,3 @@
+config:
+  output_dir: ./recordings    # 对局数据输出目录
+  pretty: true  # 是否格式化输出json
