@@ -4,7 +4,7 @@ from mitmproxy.tools.dump import DumpMaster
 from mitmproxy.options import Options
 from loguru import logger
 from mitmproxy import http, ctx
-from plugin import helper, mod,replace
+from plugin import helper, mod, replace, round_recorder
 from ruamel.yaml import YAML
 from sys import stdout
 from plugin import update_liqi
@@ -36,6 +36,7 @@ plugin_enable:
   mod: true  # mod用于解锁全部角色、皮肤、装扮等
   helper: false  # helper用于将对局发送至雀魂小助手，不使用小助手请勿开启
   replace: false  # replace用于替换雀魂的游戏内容
+  recorder: false  # recorder用于将每局动作流落地到本地json
 # liqi用于解析雀魂消息
 liqi:
   auto_update: true  # 是否自动更新
@@ -57,7 +58,8 @@ except:
 
 MOD_ENABLE = SETTINGS["plugin_enable"]["mod"]
 HELPER_ENABLE = SETTINGS["plugin_enable"]["helper"]
-REPLACE_ENABLE = SETTINGS['plugin_enable']["replace"]
+REPLACE_ENABLE = SETTINGS["plugin_enable"]["replace"]
+RECORDER_ENABLE = SETTINGS["plugin_enable"].get("recorder", False)
 if SETTINGS["liqi"]["auto_update"]:
     if "liqi_hash" not in SETTINGS["liqi"]:
         SETTINGS["liqi"]["liqi_hash"] = ""
@@ -79,6 +81,7 @@ logger.success(
     启用mod: {MOD_ENABLE}\n
     启用helper：{HELPER_ENABLE}\n
     启用replace：{REPLACE_ENABLE}\n
+    启用recorder：{RECORDER_ENABLE}\n
     """
 )
 if MOD_ENABLE:
@@ -87,8 +90,10 @@ if HELPER_ENABLE:
     helper_plugin = helper.helper()
 if REPLACE_ENABLE:
     replace_plugin = replace.replace()
+if RECORDER_ENABLE:
+    recorder_plugin = round_recorder.round_recorder()
 liqi_proto = liqi_new.LiqiProto()
-if not (MOD_ENABLE or HELPER_ENABLE or REPLACE_ENABLE):
+if not (MOD_ENABLE or HELPER_ENABLE or REPLACE_ENABLE or RECORDER_ENABLE):
     logger.warning(
         "请注意，当前没有开启任何功能，请修改./config/settings.yaml文件并重新启动！"
     )
@@ -109,11 +114,11 @@ class MajsoulMaxAddon:
         # 解析proto消息
         if MOD_ENABLE:
             # 如果启用mod，就把WS消息丢进mod里
-            if not message.injected: # 不解析MAX自己插入的WS消息
+            if not message.injected:  # 不解析MAX自己插入的WS消息
                 modify, drop, msg, inject, inject_msg = mod_plugin.main(
                     message, liqi_proto
                 )
-                if drop: 
+                if drop:
                     message.drop()
                 if inject:
                     ctx.master.commands.call(
@@ -123,13 +128,15 @@ class MajsoulMaxAddon:
                     # 如果被mod修改就同步变更
                     message.content = msg
         try:
-            result = liqi_proto.parse(message) # 解析消息
+            result = liqi_proto.parse(message)  # 解析消息
         except:
             if message.from_client is False:
                 logger.error(f"接收到(error):{message.content}")
             else:
                 logger.error(f"已发送(error):{message.content}")
         else:
+            if RECORDER_ENABLE:
+                recorder_plugin.main(result, message.from_client)
             if message.from_client is False:
                 if message.injected:
                     logger.success(f"接收到(injected)：{result}")
@@ -147,20 +154,29 @@ class MajsoulMaxAddon:
                     logger.success(f"已发送(modify)：{result}")
                 else:
                     logger.info(f"已发送：{result}")
-    def request(self,flow: http.HTTPFlow):
+
+    def done(self):
+        if RECORDER_ENABLE:
+            recorder_plugin.close()
+
+    def request(self, flow: http.HTTPFlow):
         # 在捕获到HTTP消息时触发
         if REPLACE_ENABLE:
             # 如果启用replace，就把HTTP消息丢进replace里
             path = replace_plugin.main(flow.request)
-            if path != '':
-                with open(f"./replace{path}","rb") as f:
-                    if (body := f.read() )!=b"":
-                        flow.response = http.Response.make(200, body) #,  {"Content-Type": "image/png"})
+            if path != "":
+                with open(f"./replace{path}", "rb") as f:
+                    if (body := f.read()) != b"":
+                        flow.response = http.Response.make(
+                            200, body
+                        )  # ,  {"Content-Type": "image/png"})
                         logger.success(f"已替换(replace)：{flow.request.path}")
                     else:
                         logger.error(f"替换错误(error):{flow.request.path}")
 
+
 addons = [MajsoulMaxAddon()]
+
 
 async def start_mitm():
     # 创建 mitmproxy 配置

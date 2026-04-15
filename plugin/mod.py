@@ -746,7 +746,7 @@ mod: {}
                                     account.avatar_id = account.character.skin = item['skin_id']
                                 else:
                                     account.character.charid = self.settings['config']['character']
-                                    account.avatar_id = p.character.skin = self.settings['config']['characters'][self.settings['config']['character']]
+                                    account.avatar_id = account.character.skin = self.settings['config']['characters'][self.settings['config']['character']]
 
                                 if self.settings['config']['emoji']:
                                     account.character.extra_emoji.extend(
