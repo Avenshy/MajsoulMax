@@ -222,12 +222,13 @@ function main(config) {
     config['proxy-groups'].push({
         name: '🀄 雀魂麻将',
         type: 'select',
-        proxies: ['DIRECT', 'MajsoulMax'],
+        proxies: ['自动选择','DIRECT', 'MajsoulMax'],
         icon: 'https://www.maj-soul.com/homepage/img/logotaiwan.png',
     });
 
     const bypass = [
-        'AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT',
+        'AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), 自动选择',//如果没有梯子则将'自动选择'改为'DIRECT'
+
     ];
 
     const clientRules = ['PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将', 'PROCESS-NAME,雀魂麻將.exe,🀄 雀魂麻将'];
