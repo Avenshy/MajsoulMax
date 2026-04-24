@@ -211,6 +211,18 @@ DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
 
 ```js
 function main(config) {
+    // ========== 动态识别策略组，可改为自己的节点名 ==========
+    const autoGroupName = (() => {
+        if (config['proxy-groups'].some(g => g.name === '自动选择')) {
+            return '自动选择';
+        }
+        if (config['proxy-groups'].some(g => g.name === '♻️自动选择')) {
+            return '♻️自动选择';
+        }
+        return 'DIRECT';
+    })();
+
+
     config.proxies.push({
         name: 'MajsoulMax',
         type: 'http',
@@ -219,25 +231,26 @@ function main(config) {
         tls: true,
     });
 
+    // ========== 这里也记得修改 ==========
     config['proxy-groups'].push({
-        name: '🀄 雀魂麻将',
+        name: '🀄️ 雀魂麻将',
         type: 'select',
-        proxies: ['自动选择','DIRECT', 'MajsoulMax'],
+        proxies: ['自动选择','♻️自动选择', 'MajsoulMax','DIRECT'],
         icon: 'https://www.maj-soul.com/homepage/img/logotaiwan.png',
     });
 
     const bypass = [
-        'AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), 自动选择',//如果没有梯子则将'自动选择'改为'DIRECT'
+        AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), ${autoGroupName},
 
     ];
 
-    const clientRules = ['PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将', 'PROCESS-NAME,雀魂麻將.exe,🀄 雀魂麻将'];
+    const clientRules = ['PROCESS-NAME,Jantama_MahjongSoul.exe,🀄️ 雀魂麻将', 'PROCESS-NAME,雀魂麻將.exe,🀄️ 雀魂麻将'];
 
     const webRules = [
-        'DOMAIN-KEYWORD,majsoul,🀄 雀魂麻将',
-        'DOMAIN-KEYWORD,maj-soul,🀄 雀魂麻将',
-        'DOMAIN-KEYWORD,mahjongsoul,🀄 雀魂麻将',
-        'DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将',
+        'DOMAIN-KEYWORD,majsoul,🀄️ 雀魂麻将',
+        'DOMAIN-KEYWORD,maj-soul,🀄️ 雀魂麻将',
+        'DOMAIN-KEYWORD,mahjongsoul,🀄️ 雀魂麻将',
+        'DOMAIN-KEYWORD,catmjstudio,🀄️ 雀魂麻将',
     ];
 
     config.rules.unshift(...bypass, ...clientRules, ...webRules);
