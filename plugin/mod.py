@@ -1,12 +1,10 @@
 import liqi_new
-import requests
 import random
 from ruamel.yaml import YAML
 from loguru import logger
 from struct import unpack
-from proto import liqi_pb2, config_pb2, sheets_pb2, basic_pb2
+from proto import liqi_pb2, basic_pb2
 from google.protobuf import json_format
-from .update_liqi import get_version
 
 
 
@@ -15,6 +13,7 @@ class mod:
         self.version = version
         self.safe = {}
         self.yaml = YAML()
+        self.max_data = {}
         self.LoadSettings()
         logger.success('已载入mod')
 
@@ -49,12 +48,6 @@ config:
     enabled: false
     pool: []
   safe_mode: false  # 地铁模式，将除自己外所有人变成一姬初始形象，防止被误认为玩黄油。电脑形象请打开“游戏设置-偏好-电脑形象-一姬的初始形象”选项。
-# 资源文件lqc.lqbin的配置                            
-resource:
-  auto_update: true # 自动更新lqc.lqbin
-  lqc_lqbin_version: 'v0.11.219.w' # lqc.lqbin文件版本
-# 下面是游戏的资源文件内容，包括需要获得的角色、物品等，不需要修改，除非你要自定义
-mod: {}
 ''')
         try:
             with open('./config/settings.mod.yaml', 'r', encoding='utf-8') as f:
@@ -68,115 +61,17 @@ mod: {}
         except:
             logger.warning(
                 '未检测到mod配置文件，已生成默认配置，如需自定义mod配置请手动修改 ./config/settings.mod.yaml')
-        if self.settings['resource']['auto_update']:
-            logger.info('正在检测lqc.lqbin文件更新，请稍候……')
-            try:
-                self.update_resource()
-            except:
-                logger.critical('更新lqc.lqbin文件失败！可能会导致角色和物品不全！')
-        with open('./proto/lqc.lqbin', 'rb') as f:
-            self.load_lqc_lqbin(f.read())
+        self.load_max_data()
         self.SaveSettings()
 
     def SaveSettings(self):
         with open('./config/settings.mod.yaml', 'w', encoding='utf-8') as f:
             self.yaml.dump(self.settings, f)
 
-    def get_prefix(self, version):
-        req = requests.get(
-            f'https://game.maj-soul.com/1/resversion{version}.json', timeout=10)
-        return req.json()['res']['res/config/lqc.lqbin']['prefix']
-
-    def get_lqc_lqbin(self, prefix):
-        req = requests.get(
-            f'https://game.maj-soul.com/1/{prefix}/res/config/lqc.lqbin', timeout=10)
-        return req.content
-
-    def load_lqc_lqbin(self, lqc_lqbin):
-        config_table = config_pb2.ConfigTables()
-        config_table.ParseFromString(lqc_lqbin)
-        self.settings['mod']['character'] = []
-        self.settings['mod']['skin'] = []
-        self.settings['mod']['title'] = []
-        self.settings['mod']['item'] = []
-        self.settings['mod']['loading_image'] = []
-        self.settings['mod']['emoji'] = {}
-        self.settings['mod']['endings'] = []
-        for data in config_table.datas:
-            class_words = f"{data.table}_{data.sheet}".split("_")
-            class_name = "".join(name.capitalize() for name in class_words)
-            match class_name:
-                case 'ItemDefinitionCharacter':
-                    pb = sheets_pb2.ItemDefinitionCharacter()
-                    for item in data.data:
-                        pb.ParseFromString(item)
-                        # if pb.id not in self.settings['mod']['character']:
-                        self.settings['mod']['character'].append(pb.id)
-                case 'ItemDefinitionSkin':
-                    pb = sheets_pb2.ItemDefinitionSkin()
-                    for item in data.data:
-                        pb.ParseFromString(item)
-                        # if pb.id not in self.settings['mod']['skin']:
-                        self.settings['mod']['skin'].append(pb.id)
-                case 'ItemDefinitionTitle':
-                    pb = sheets_pb2.ItemDefinitionTitle()
-                    for item in data.data:
-                        pb.ParseFromString(item)
-                        # if pb.id not in self.settings['mod']['title']:
-                        self.settings['mod']['title'].append(pb.id)
-                case 'ItemDefinitionItem':
-                    pb = sheets_pb2.ItemDefinitionItem()
-                    for item in data.data:
-                        pb.ParseFromString(item)
-                        match pb.category:
-                            case 5:
-                                # if pb.id not in self.settings['mod']['item']:
-                                self.settings['mod']['item'].append(pb.id)
-                            # 加了就会无法变更称号 这到底是为什么呢
-                            # case 7:
-                            #     if pb.id not in self.settings['mod']['title']:
-                            #         self.settings['mod']['title'].append(pb.id)
-                            case 8:
-                                if pb.id not in self.settings['mod']['loading_image']:
-                                    self.settings['mod']['loading_image'].append(
-                                        pb.id)
-                case 'ItemDefinitionLoadingImage':
-                    pb = sheets_pb2.ItemDefinitionLoadingImage()
-                    for item in data.data:
-                        pb.ParseFromString(item)
-                        if pb.id not in self.settings['mod']['loading_image']:
-                            self.settings['mod']['loading_image'].append(
-                                pb.id)
-                case 'CharacterEmoji':
-                    pb = sheets_pb2.CharacterEmoji()
-                    for item in data.data:
-                        pb.ParseFromString(item)
-                        if pb.charid not in self.settings['mod']['emoji'].keys():
-                            self.settings['mod']['emoji'][pb.charid] = []
-                        self.settings['mod']['emoji'][pb.charid].append(
-                            pb.sub_id)
-                case 'SpotRewards':
-                    pb = sheets_pb2.SpotRewards()
-                    for item in data.data:
-                        pb.ParseFromString(item)
-                        self.settings['mod']['endings'].append(pb.id)
-
-    def update_resource(self):
-        # 获取资源文件版本
-        new_version = get_version()
-
-        prefix = self.get_prefix(new_version)
-
-        # 校验版本是否相同
-        if self.settings['resource']['lqc_lqbin_version'] == prefix:
-            logger.success(f'lqc.lqbin文件无需更新，当前版本：{prefix}')
-        else:
-            # 更新lqc.lqbin
-            lqc_lqbin = self.get_lqc_lqbin(prefix)
-            with open('proto/lqc.lqbin', 'wb') as f:
-                f.write(lqc_lqbin)
-            self.settings['resource']['lqc_lqbin_version'] = prefix
-            logger.success(f'lqc.lqbin文件更新成功：{prefix}')
+    def load_max_data(self):
+        with open('./config/max_data.yaml', 'r', encoding='utf-8') as f:
+            yaml = YAML()
+            self.max_data = yaml.load(f)
 
     def main(self, message, liqi_proto):
         modify = False
@@ -284,11 +179,12 @@ mod: {}
                         character.rewarded_level.extend([1, 2, 3, 4, 5])
                         if self.settings['config']['emoji']:
                             character.extra_emoji.extend(
-                                self.settings['mod']['emoji'][character.charid])
-                        update_data_block = [{'id': 1, 'type': 'string', 'data': '.lq.NotifyAccountUpdate'.encode(
-                        )}, {'id': 2, 'type': 'string', 'data': update_data.SerializeToString()}]
-                        inject_msg = b'\x01' + \
-                            liqi_new.toProtobuf(update_data_block)
+                                self.max_data['emoji'][character.charid])
+
+                        basic = basic_pb2.BaseMessage()
+                        basic.method_name = '.lq.NotifyAccountUpdate'
+                        basic.data = update_data.SerializeToString()
+                        inject_msg = b'\x01' + basic.SerializeToString()
                     case '.lq.Lobby.addFinishedEnding':  # 角色传记
                         drop = True
                     case '.lq.Lobby.updateCharacterSort':  # 角色星标
@@ -380,7 +276,7 @@ mod: {}
                         data.ClearField('characters')
                         character_keys = self.settings['config']['characters'].keys(
                         )
-                        for c in self.settings['mod']['character']:
+                        for c in self.max_data['character']:
                             character = data.characters.add()
                             character.charid = c
                             character.exp = 0
@@ -393,9 +289,9 @@ mod: {}
                             character.skin = self.settings['config']['characters'][c]
                             if self.settings['config']['emoji']:
                                 character.extra_emoji.extend(
-                                    self.settings['mod']['emoji'][character.charid])
+                                    self.max_data['emoji'][character.charid])
                         data.ClearField('skins')
-                        data.skins.extend(self.settings['mod']['skin'])
+                        data.skins.extend(self.max_data['skin'])
                         data.main_character_id = self.settings['config']['character']
                         data.ClearField('character_sort')
                         data.character_sort.extend(
@@ -404,9 +300,9 @@ mod: {}
                         data.ClearField('finished_endings')
                         data.ClearField('rewarded_endings')
                         data.finished_endings.extend(
-                            self.settings['mod']['endings'])
+                            self.max_data['endings'])
                         data.rewarded_endings.extend(
-                            self.settings['mod']['endings'])
+                            self.max_data['endings'])
                     case '.lq.Lobby.login' | '.lq.Lobby.oauth2Login':  # 登录时
 
                         modify = True
@@ -451,7 +347,7 @@ mod: {}
                                     'characters'][self.settings['config']['character']]
                                 if self.settings['config']['emoji']:
                                     p.character.extra_emoji.extend(
-                                        self.settings['mod']['emoji'][p.character.charid])
+                                        self.max_data['emoji'][p.character.charid])
                                 if self.settings['config']['nickname'] != '':
                                     p.nickname = self.settings['config']['nickname']
                                 p.title = self.settings['config']['title']
@@ -492,7 +388,7 @@ mod: {}
                                     p.avatar_id = p.character.skin = self.settings['config']['characters'][self.settings['config']['character']]
                                 if self.settings['config']['emoji']:
                                     p.character.extra_emoji.extend(
-                                        self.settings['mod']['emoji'][p.character.charid])
+                                        self.max_data['emoji'][p.character.charid])
                                 if self.settings['config']['nickname'] != '':
                                     p.nickname = self.settings['config']['nickname']
                                 p.title = self.settings['config']['title']
@@ -557,7 +453,7 @@ mod: {}
                         data.ParseFromString(msg_block.data)
                         # self.safe['title_list'] = data.title_list
                         data.ClearField('title_list')
-                        data.title_list.extend(self.settings['mod']['title'])
+                        data.title_list.extend(self.max_data['title'])
                     case '.lq.Lobby.fetchRoom':  # 获取友人房信息
                         modify = True
                         data = liqi_pb2.ResSelfRoom()
@@ -575,7 +471,7 @@ mod: {}
                                     'characters'][self.settings['config']['character']]
                                 if self.settings['config']['emoji']:
                                     p.character.extra_emoji.extend(
-                                        self.settings['mod']['emoji'][p.character.charid])
+                                        self.max_data['emoji'][p.character.charid])
                                 if self.settings['config']['nickname'] != '':
                                     p.nickname = self.settings['config']['nickname']
                                 p.title = self.settings['config']['title']
@@ -594,17 +490,17 @@ mod: {}
                         data.bag.ClearField('items')
                         # 添加原背包物品
                         for item in self.safe['items']:
-                            if item.item_id not in self.settings['mod']['item']:
+                            if item.item_id not in self.max_data['item']:
                                 myitem = data.bag.items.add()
                                 myitem.item_id = item.item_id
                                 myitem.stack = item.stack
                         # 添加其他物品
-                        for id in self.settings['mod']['item']:
+                        for id in self.max_data['item']:
                             item = data.bag.items.add()
                             item.item_id = id
                             item.stack = 1
                         # 添加加载插图
-                        for id in self.settings['mod']['loading_image']:
+                        for id in self.max_data['loading_image']:
                             item = data.bag.items.add()
                             item.item_id = id
                             item.stack = 1
@@ -646,7 +542,7 @@ mod: {}
                         data.character_info.ClearField('characters')
                         character_keys = self.settings['config']['characters'].keys(
                         )
-                        for c in self.settings['mod']['character']:
+                        for c in self.max_data['character']:
                             character = data.character_info.characters.add()
                             character.charid = c
                             character.exp = 0
@@ -659,10 +555,10 @@ mod: {}
                             character.skin = self.settings['config']['characters'][c]
                             if self.settings['config']['emoji']:
                                 character.extra_emoji.extend(
-                                    self.settings['mod']['emoji'][character.charid])
+                                    self.max_data['emoji'][character.charid])
                         data.character_info.ClearField('skins')
                         data.character_info.skins.extend(
-                            self.settings['mod']['skin'])
+                            self.max_data['skin'])
                         data.character_info.main_character_id = self.settings['config']['character']
                         data.character_info.ClearField('character_sort')
                         data.character_info.character_sort.extend(
@@ -671,26 +567,26 @@ mod: {}
                         data.character_info.ClearField('finished_endings')
                         data.character_info.ClearField('rewarded_endings')
                         data.character_info.finished_endings.extend(
-                            self.settings['mod']['endings'])
+                            self.max_data['endings'])
                         data.character_info.rewarded_endings.extend(
-                            self.settings['mod']['endings'])
+                            self.max_data['endings'])
 
                         # 处理背包
                         self.safe['items'] = data.bag_info.bag.items
                         data.bag_info.bag.ClearField('items')
                         # 添加原背包物品
                         for item in self.safe['items']:
-                            if item.item_id not in self.settings['mod']['item']:
+                            if item.item_id not in self.max_data['item']:
                                 myitem = data.bag_info.bag.items.add()
                                 myitem.item_id = item.item_id
                                 myitem.stack = item.stack
                         # 添加其他物品
-                        for id in self.settings['mod']['item']:
+                        for id in self.max_data['item']:
                             item = data.bag_info.bag.items.add()
                             item.item_id = id
                             item.stack = 1
                         # 添加加载插图
-                        for id in self.settings['mod']['loading_image']:
+                        for id in self.max_data['loading_image']:
                             item = data.bag_info.bag.items.add()
                             item.item_id = id
                             item.stack = 1
@@ -704,7 +600,7 @@ mod: {}
                                 {'index': i, 'values': view}, views)
                         # 处理称号
                         data.ClearField('title_list')
-                        data.title_list.title_list.extend(self.settings['mod']['title'])
+                        data.title_list.title_list.extend(self.max_data['title'])
                         # 处理随机角色皮肤
                         data.ClearField('random_character')
                         json_format.ParseDict(self.settings['config']['random_character'],data.random_character)
@@ -750,7 +646,7 @@ mod: {}
 
                                 if self.settings['config']['emoji']:
                                     account.character.extra_emoji.extend(
-                                        self.settings['mod']['emoji'][account.character.charid])
+                                        self.max_data['emoji'][account.character.charid])
                                 if self.settings['config']['nickname'] != '':
                                     account.nickname = self.settings['config']['nickname']
                                 account.title = self.settings['config']['title']
