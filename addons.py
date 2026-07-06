@@ -7,9 +7,9 @@ from mitmproxy import http, ctx
 from plugin import helper, mod,replace
 from ruamel.yaml import YAML
 from sys import stdout
-from plugin import update_liqi
+from plugin import update
 
-VERSION = "20260212"
+VERSION = "v2026.07.07"
 logger.warning(
     f"\n\n雀魂MAX        作者：Avenshy        版本：{VERSION}\n\
 开源地址：https://github.com/Avenshy/MajsoulMax\n\n\
@@ -40,8 +40,7 @@ plugin_enable:
 liqi:
   auto_update: true  # 是否自动更新
   github_token: '' # 仅供自己使用，请勿泄漏给任何人
-  liqi_version: 'v0.11.219.w'  # 本地liqi文件版本
-  liqi_hash: 'e6a718c1e50b41471453b16c75b2992cbb05c2c84297b6d55edd1499a089530e'  # 本地liqi文件hash
+  liqi_version: '0.16.243-4.0.45'  # 本地liqi文件版本
 """)
 try:
     with open("./config/settings.yaml", "r", encoding="utf-8") as f:
@@ -49,7 +48,7 @@ try:
 except:
     logger.warning(
         """首次运行，默认启用mod，禁用helper\n
-        如需使用，请修改./config/settings.yaml文件\n
+        如需使用，请修改 ./config/settings.yaml 文件\n
         修改完成后重新启动即可\n
         """
     )
@@ -59,19 +58,16 @@ MOD_ENABLE = SETTINGS["plugin_enable"]["mod"]
 HELPER_ENABLE = SETTINGS["plugin_enable"]["helper"]
 REPLACE_ENABLE = SETTINGS['plugin_enable']["replace"]
 if SETTINGS["liqi"]["auto_update"]:
-    if "liqi_hash" not in SETTINGS["liqi"]:
-        SETTINGS["liqi"]["liqi_hash"] = ""
-    logger.info("正在检测liqi文件更新，请稍候……")
+    logger.info("正在检测更新，请稍候……")
     try:
-        result = update_liqi.update(
-            SETTINGS["liqi"]["liqi_version"],
-            SETTINGS["liqi"]["github_token"],
-            SETTINGS["liqi"]["liqi_hash"],
+        result = update.update(
+            max_version = VERSION,
+            liqi_version = SETTINGS["liqi"]["liqi_version"],
+            token = SETTINGS["liqi"]["github_token"]
         )
-        SETTINGS["liqi"]["liqi_version"] = result["version"]
-        SETTINGS["liqi"]["liqi_hash"] = result["hash"]
+        SETTINGS["liqi"]["liqi_version"] = result
     except:
-        logger.critical("liqi文件更新失败！可能会导致部分消息无法解析！")
+        logger.critical("更新失败！可能会导致部分消息无法解析！")
 with open("./config/settings.yaml", "w", encoding="utf-8") as f:
     yaml.dump(SETTINGS, f)
 logger.success(
