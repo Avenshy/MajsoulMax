@@ -211,6 +211,17 @@ DOMAIN-KEYWORD,catmjstudio,🀄 雀魂麻将
 
 ```js
 function main(config) {
+    // 你不同机场的自动选择名称不一样就修改或者新增
+    const autoGroupName = (() => {
+        if (config['proxy-groups'].some(g => g.name === '自动选择')) {
+            return '自动选择';
+        }
+        if (config['proxy-groups'].some(g => g.name === '♻️自动选择')) {
+            return '♻️自动选择';
+        }
+        return 'DIRECT';
+    })();
+
     config.proxies.push({
         name: 'MajsoulMax',
         type: 'http',
@@ -219,15 +230,45 @@ function main(config) {
         tls: true,
     });
 
+    const fallbackProxies = ['MajsoulMax'];
+    if (config['proxy-groups'].some(g => g.name === '自动选择')) {
+        fallbackProxies.push('自动选择');
+    }
+    if (config['proxy-groups'].some(g => g.name === '♻️自动选择')) {
+        fallbackProxies.push('♻️自动选择');
+    }
+    fallbackProxies.push('DIRECT');
+
     config['proxy-groups'].push({
-        name: '🀄 雀魂麻将',
+        name: '雀魂Max-故障转移',  
+        type: 'fallback',
+        proxies: fallbackProxies,
+        url: 'http://www.gstatic.com/generate_204',
+        interval: 30,
+        icon: 'https://www.maj-soul.com/homepage/img/logotaiwan.png',
+    });
+
+    const selectProxies = [
+        '雀魂Max-故障转移',  
+        'MajsoulMax',
+    ];
+    if (config['proxy-groups'].some(g => g.name === '自动选择')) {
+        selectProxies.push('自动选择');
+    }
+    if (config['proxy-groups'].some(g => g.name === '♻️自动选择')) {
+        selectProxies.push('♻️自动选择');
+    }
+    selectProxies.push('DIRECT');
+
+    config['proxy-groups'].push({
+        name: '🀄 雀魂麻将',  
         type: 'select',
-        proxies: ['DIRECT', 'MajsoulMax'],
+        proxies: selectProxies,
         icon: 'https://www.maj-soul.com/homepage/img/logotaiwan.png',
     });
 
     const bypass = [
-        'AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), DIRECT',
+        `AND, ((OR, ((PROCESS-NAME-REGEX, python.*?),(PROCESS-NAME, MajsoulMax.exe))), (OR, ((PROCESS-NAME,Jantama_MahjongSoul.exe),(PROCESS-NAME,雀魂麻將.exe),(DOMAIN-KEYWORD, majsoul), (DOMAIN-KEYWORD, maj-soul), (DOMAIN-KEYWORD, mahjongsoul), (DOMAIN-KEYWORD, catmjstudio)))), ${autoGroupName}`,
     ];
 
     const clientRules = ['PROCESS-NAME,Jantama_MahjongSoul.exe,🀄 雀魂麻将', 'PROCESS-NAME,雀魂麻將.exe,🀄 雀魂麻将'];
