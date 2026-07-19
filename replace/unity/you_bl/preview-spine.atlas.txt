@@ -1,0 +1,6 @@
+you_bl.png
+size:2048,2048
+filter:Linear,Linear
+gys
+bounds:172,0,1704,2048
+offsets:0,0,1704,2048
