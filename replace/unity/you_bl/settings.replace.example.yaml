@@ -1,0 +1,8 @@
+config:
+  http:
+    - /assetbundles/DXT/bundle_info_so.majset
+    - /assetbundles/DXT/uwv8ssu060e25j9j446uls$bm--bk0stggi__50508a0e23f24351e046.majset
+    - /assetbundles/DXT/uwv8ssu060e25j9j446uls$bm--bgonpnkojjlb_5faac359e4d487f14745.majset
+    - /assetbundles/DXT/9717zttvpmsxpw224u_04b9c3036a8264b25d79.majset
+    - /assetbundles/DXT/9717zttvpmsxpw224v_b2374895f0746862c5da.majset
+  lq: []
