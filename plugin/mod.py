@@ -1,4 +1,5 @@
 import liqi_new
+from plugin.emoji import remap_content, unlocked_mapping
 import random
 from ruamel.yaml import YAML
 from loguru import logger
@@ -89,6 +90,15 @@ config:
             msg_block.ParseFromString(buf[1:])
             method_name = msg_block.method_name
             match method_name:
+                case '.lq.NotifyGameBroadcast':
+                    mapping = self.safe.get('emoji_mapping')
+                    if mapping and mapping['seat'] is not None:
+                        data = liqi_pb2.NotifyGameBroadcast.FromString(msg_block.data)
+                        if data.seat == mapping['seat']:
+                            content = remap_content(data.content, mapping['receive'])
+                            if content is not None:
+                                data.content = content
+                                modify = True
                 case '.lq.NotifyAccountUpdate':
                     data = liqi_pb2.NotifyAccountUpdate()
                     data.ParseFromString(msg_block.data)
@@ -155,6 +165,18 @@ config:
                 method_name = msg_block.method_name
                 # 根据method_name判断是否需要修改
                 match method_name:
+                    case '.lq.FastTest.authGame':
+                        data = liqi_pb2.ReqAuthGame.FromString(msg_block.data)
+                        self.safe['account_id'] = data.account_id
+                        self.safe.pop('emoji_mapping', None)
+                    case '.lq.FastTest.broadcastInGame':
+                        mapping = self.safe.get('emoji_mapping')
+                        if mapping:
+                            data = liqi_pb2.ReqBroadcastInGame.FromString(msg_block.data)
+                            content = remap_content(data.content, mapping['send'])
+                            if content is not None:
+                                data.content = content
+                                modify = True
                     case '.lq.Lobby.changeMainCharacter':  # 修改看板娘
                         fake = True
                         data = liqi_pb2.ReqChangeMainCharacter()
@@ -362,6 +384,12 @@ config:
                         modify = True
                         data = liqi_pb2.ResAuthGame()
                         data.ParseFromString(msg_block.data)
+                        self.safe.pop('emoji_mapping', None)
+                        if data.HasField('error') and data.error.code:
+                            return False, drop, msg, inject, inject_msg
+                        own_id = self.safe.get('account_id')
+                        own_seat = (list(data.seat_list).index(own_id)
+                                    if own_id in data.seat_list else None)
                         if self.settings['config']['bianjietishi']:
                             data.game_config.mode.detail_rule.bianjietishi = True
                             if data.game_config.meta.mode_id == 15 :
@@ -379,6 +407,8 @@ config:
                             p.character.rewarded_level.extend([1, 2, 3, 4, 5])
                             p.character.exp = 0
                             if p.account_id == self.safe['account_id']:
+                                server_character = p.character.charid
+                                server_emojis = list(p.character.enabled_emoji)
                                 if self.settings['config']['random_character']['enabled'] and self.settings['config']['random_character']['pool']!=[]: # 处理随机角色
                                     item = random.choice(self.settings['config']['random_character']['pool'])
                                     p.character.charid = item['character_id']
@@ -411,6 +441,20 @@ config:
                                 p.character.charid=200001
                                 p.character.skin=400101
                                 p.avatar_id= 400101
+                            if p.account_id == own_id:
+                                send, receive, indices = unlocked_mapping(
+                                    server_character, p.character.charid, server_emojis)
+                                self.safe['emoji_mapping'] = {
+                                    'server': server_character,
+                                    'local': p.character.charid,
+                                    'seat': own_seat,
+                                    'send': send,
+                                    'receive': receive,
+                                }
+                                p.character.ClearField('enabled_emoji')
+                                p.character.enabled_emoji.extend(send)
+                                p.character.ClearField('extra_emoji')
+                                p.character.extra_emoji.extend(indices)
                         for p in data.robots:
                             p.character.level = 5
                             p.character.is_upgraded = True
